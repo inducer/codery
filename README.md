@@ -9,7 +9,8 @@ contents](https://github.com/inducer/codery/archive/master.zip) and unpack),
 then say:
 
 ```
-python manage.py testserver
+python manage.py syncdb
+python manage.py runserver
 ```
 
 ## Dependencies
