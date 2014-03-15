@@ -8,7 +8,7 @@ Clone this repository (or [download the
 contents](https://github.com/inducer/codery/archive/master.zip) and unpack),
 install the dependencies (below), then say:
 
-```
+```bash
 python manage.py syncdb
 python manage.py runserver
 ```
@@ -19,7 +19,7 @@ Then go to <http://localhost:8000/admin> to get started.
 
 Entering the following commands should leave you with a working version:
 
-```
+```bash
 # install virtualenv, create a virtualenv
 curl -k https://pypi.python.org/packages/source/v/virtualenv/virtualenv-1.9.1.tar.gz | tar xfz -
 python virtualenv-1.9.1/virtualenv.py --no-setuptools myenv
