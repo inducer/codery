@@ -19,7 +19,7 @@ class AuthenticationForm(AuthenticationFormBase):
         #         'password',
         #         )
 
-        self.helper.add_input(Submit("submit", "Sign in"))
+        self.helper.add_input(Submit("submit", "Sign in", css_class="col-lg-offset-2"))
         super(AuthenticationForm, self).__init__(*args, **kwargs)
 
 def login(request):
