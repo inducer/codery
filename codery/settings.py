@@ -41,7 +41,12 @@ INSTALLED_APPS = (
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'pieces',
+    'crispy_forms',
 )
+
+CRISPY_TEMPLATE_PACK = "bootstrap3"
+
+LOGIN_REDIRECT_URL = "/"
 
 MIDDLEWARE_CLASSES = (
     'django.contrib.sessions.middleware.SessionMiddleware',

@@ -10,9 +10,10 @@ urlpatterns = patterns('',
     (r'^$', TemplateView.as_view(template_name='welcome.html')),
     # url(r'^blog/', include('blog.urls')),
 
-    (r'^accounts/login/$',
-        'django.contrib.auth.views.login',
-        {'template_name': 'login.html'}),
+    (r'^accounts/login/$', 'codery.views.login',),
+    (r'^accounts/logout/$',
+        'django.contrib.auth.views.logout',
+        {'template_name': 'logged_out.html'}),
 
     url(r'^admin/', include(admin.site.urls)),
 

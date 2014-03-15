@@ -1,5 +1,7 @@
 {% extends "base.html" %}
 
+{% load crispy_forms_tags %}
+
 {% block content %}
   {% if form.errors %}
     <div class="alert alert-danger">
@@ -7,29 +9,7 @@
     </div>
   {% endif %}
 
-  <form method="post" action="{% url 'django.contrib.auth.views.login' %}">
-    {% csrf_token %}
-    <div class="input-group">
-      <table>
-      <tr>
-          <td>{{ form.username.label_tag }}</td>
-          <td>{{ form.username }}</td>
-      </tr>
-      <tr>
-          <td>{{ form.password.label_tag }}</td>
-          <td>{{ form.password }}</td>
-      </tr>
-      </table>
-    </div>
-<div class="input-group">
-  <input type="text" class="form-control">
-  <span class="input-group-addon">.00</span>
-</div>
-
-
-    <button type="submit" class="btn btn-default">Login</button>
-    <input type="hidden" name="next" value="{{ next }}" />
-  </form>
+  {% crispy form %}
 
 {% endblock %}
 

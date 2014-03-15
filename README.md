@@ -55,5 +55,6 @@ Then go to <http://localhost:8000/admin> to get started.
 ## Dependencies
 
 * [Django](http://djangoproject.com)  Version 1.6 or newer
+* [Django-crispy-forms](http://django-crispy-forms.readthedocs.org/en/d-0/) for beautiful forms
 * [BeautfulSoup4](http://pypi.python.org/pypi/BeautfulSoup4) (optional, for picking apart
   HTML exported out of LexisNexis) Version 4 or newer
