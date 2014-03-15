@@ -18,4 +18,5 @@ urlpatterns = patterns('',
     url(r'^admin/', include(admin.site.urls)),
 
     ('^piece/(?P<id>[0-9]+)/$', 'pieces.views.view_piece'),
+    ('^piece/import-ln-html/$', 'pieces.views.import_ln_html'),
 )

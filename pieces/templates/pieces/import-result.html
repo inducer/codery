@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+  <h2>Import Result</h2>
+  <pre>{{ log }}</pre>
+  {% if was_successful %}
+    <div class="alert alert-success">
+      Import succeeded.
+    </div>
+  {% else %}
+    <div class="alert alert-danger">
+      Import failed.
+    </div>
+  {% endif %}
+{% endblock %}
+
+

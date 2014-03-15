@@ -54,3 +54,7 @@ class Piece(models.Model):
 
     class Meta:
         ordering = ["-pub_date", "title"]
+
+        permissions = (
+                ("bulk_import", "Can import pieces in bulk"),
+                )

@@ -8,9 +8,8 @@ DATE_ISH_PARSE_RE = re.compile(r"^([A-Za-z]+),? ([0-9]+)\, ([0-9]+)", re.MULTILI
 
 from pieces.models import Piece, Venue, Study
 
-from warnings import warn
 
-def get_venue(venue_name, venue_type):
+def get_venue(log_lines, venue_name, venue_type):
     venues = Venue.objects.filter(name=venue_name)
     if not venues:
         venue = Venue()
@@ -21,48 +20,47 @@ def get_venue(venue_name, venue_type):
 
     venue, = venues
     if venue.publication_type != venue_type:
-        warn("Venue '%s' switched types from '%s' to '%s'"
-            % (venue.name, venue.publication_type, venue_type))
+        log_lines.append(
+                "WARNING: Venue '%s' switched types from '%s' to '%s'"
+                % (venue.name, venue.publication_type, venue_type))
 
     return venue
 
 
-def main():
-    from optparse import OptionParser
-    parser = OptionParser(usage="%prog [options] HTML_FILE")
-    parser.add_option("--study-id", type="int", metavar="STUDY_ID")
-
-    options, args = parser.parse_args()
-
-    if not len(args) == 1:
-        parser.print_usage()
-        sys.exit(1)
-
-    if options.study_id is None:
-        raise RuntimeError("must pass --study-id=NUMBER")
+def import_ln_html(study, html_file):
+    log_lines = []
 
     from bs4 import BeautifulSoup, Tag
-    with open(args[0], "rt") as html_file:
-        soup = BeautifulSoup(html_file.read())
-
-    study, = Study.objects.filter(id=options.study_id)
+    soup = BeautifulSoup(html_file.read())
 
     current_piece = None
     venue_type = None
     c012s = []
 
+    total_count = [0]
+    import_count = [0]
+    dupe_count = [0]
+
     def finalize_current_piece():
         if not c012s:
             return
 
-        # TODO: Filter dupes
+        total_count[0] += 1
 
         current_piece.copyright = c012s[2]
         assert len(c012s) == 3
-        venue_name = c012s[1]
-
-        current_piece.venue = get_venue(venue_name, venue_type)
+        venue_name = c012s[1].rstrip()
+        current_piece.venue = get_venue(log_lines, venue_name, venue_type)
         current_piece.study = study
+
+        for piece in Piece.objects.filter(title=current_piece.title):
+            if piece.content == current_piece.content:
+                log_lines.append("Duplicate, not imported: %s"
+                        % unicode(current_piece))
+                dupe_count[0] += 1
+                return
+
+        import_count[0] += 1
         current_piece.save()
 
     for child in soup.body.children:
@@ -95,12 +93,14 @@ def main():
             if key == ("c0", "c1", "c2"):
                 c012s.append(text)
             elif key == ("c4", "c5", "c6"):
-                current_piece.title = text
+                current_piece.title = text.rstrip()
             elif key == ("c4", "c5", "c7"):
                 match = C457_PARSE_RE.match(text)
                 if match is None:
-                    warn("c457 did not match expected format: '%s'"
+                    log_lines.append(
+                            "WARNING: c457 did not match expected format: '%s'"
                             % text[:20].encode("ascii", errors="replace"))
+
                     continue
 
                 field = match.group(1)
@@ -111,21 +111,21 @@ def main():
                 elif field == "SECTION":
                     continue
                 elif field == "BYLINE":
-                    current_piece.byline = value
+                    current_piece.byline = value.rstrip()
                 elif field == "BYLINE":
-                    current_piece.byline = value
+                    current_piece.byline = value.rstrip()
                 elif field == "LOAD-DATE":
                     current_piece.load_date = datetime.datetime.strptime(value, "%B %d, %Y").date()
                 elif field == "LANGUAGE":
-                    current_piece.language = value
+                    current_piece.language = value.rstrip()
                 elif field == "PUBLICATION-TYPE":
                     venue_type = value
                 elif field == "DOCUMENT-TYPE":
-                    current_piece.document_type = value
+                    current_piece.document_type = value.rstrip()
                 elif field == "DATELINE":
-                    current_piece.dateline = value
+                    current_piece.dateline = value.rstrip()
                 elif field == "URL":
-                    current_piece.url = value
+                    current_piece.url = value.rstrip()
                 elif field in ["GRAPHIC", "CORRECTION-DATE", "DISTRIBUTION", "JOURNAL-CODE"]:
                     # ignore for now
                     pass
@@ -135,10 +135,11 @@ def main():
             elif key == ("c3", "c1", "c2"):
                 date_match = DATE_ISH_PARSE_RE.match(text)
 
-                current_piece.pub_date_unparsed = text
+                current_piece.pub_date_unparsed = text.rstrip()
 
                 if date_match is None:
-                    warn("c312 did not match expected date-ish format: '%s'"
+                    log_lines.append(
+                            "WARNING: c312 did not match expected date-ish format: '%s'"
                             % text[:20].encode("ascii", errors="replace"))
                 else:
                     month = date_match.group(1)
@@ -159,12 +160,14 @@ def main():
 
                 current_piece.content += text
             else:
-                print text
+                #print text
                 raise RuntimeError(
                         "unknown doc key: %s" % str(key))
 
     finalize_current_piece()
 
+    log_lines = [ll.replace("\n", "<newline>") for ll in log_lines]
+    log_lines.append("%d items total, %d imported, %d duplicate"
+            % (total_count[0], import_count[0], dupe_count[0]))
 
-if __name__ == "__main__":
-    main()
+    return log_lines
