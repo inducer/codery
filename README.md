@@ -13,7 +13,7 @@ python manage.py syncdb
 python manage.py runserver
 ```
 
-Then go to <http://localhost:8000/admin> to get started.
+Then go to <http://localhost:8000/> to get started.
 
 ## Complete set-up instructions
 
@@ -50,7 +50,7 @@ python manage.py syncdb
 python manage.py runserver
 ```
 
-Then go to <http://localhost:8000/admin> to get started.
+Then go to <http://localhost:8000/> to get started.
 
 ## Dependencies
 
