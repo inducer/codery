@@ -35,7 +35,7 @@ hash -r
 
 # Download, unpack codery
 
-curl -O https://github.com/inducer/codery/archive/master.zip
+curl -O https://codeload.github.com/inducer/codery/zip/master
 unzip master.zip
 # - OR -
 # use git (recommended if you have it or plan on making changes)
