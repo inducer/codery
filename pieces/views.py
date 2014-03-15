@@ -1,8 +1,11 @@
 from django.shortcuts import render, get_object_or_404
 from pieces.models import Piece, Keyword
 
+from django.contrib.auth.decorators import login_required
+
 import re
 
+@login_required
 def view_piece(request, id):
     piece = get_object_or_404(Piece, pk=id)
 

@@ -44,7 +44,10 @@ class Piece(models.Model):
     dateline = models.CharField(max_length=100, blank=True, null=True)
 
     def __unicode__(self):
-        return self.title
+        if self.title:
+            return self.title
+        else:
+            return "(no title)"
 
     def get_absolute_url(self):
         return "/piece/%d" % self.id

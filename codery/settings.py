@@ -56,6 +56,13 @@ ROOT_URLCONF = 'codery.urls'
 
 WSGI_APPLICATION = 'codery.wsgi.application'
 
+TEMPLATE_DIRS = (
+        join(BASE_DIR, "codery", "templates"),
+        )
+STATICFILES_DIRS = (
+        join(BASE_DIR, "codery", "static"),
+        )
+
 # Database
 # https://docs.djangoproject.com/en/1.6/ref/settings/#databases
 
