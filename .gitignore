@@ -1,0 +1,6 @@
+/static
+*~
+.*.swp
+local_settings.py
+*.sqlite3
+*.py[co]
