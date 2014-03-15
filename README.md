@@ -13,6 +13,8 @@ python manage.py syncdb
 python manage.py runserver
 ```
 
+Then go to <http://localhost:8000/admin> to get started.
+
 ## Complete set-up instructions
 
 Entering the following commands should leave you with a working version:
@@ -32,13 +34,23 @@ curl http://git.tiker.net/pip/blob_plain/77f959a3ce9cc506efbf3a17290d387d0a6624f
 hash -r
 
 # Download, unpack codery
+
 curl -O https://github.com/inducer/codery/archive/master.zip
 unzip master.zip
+# - OR -
+# use git (recommended if you have it or plan on making changes)
+git clone https://github.com/inducer/codery
+
+
+# Install dependencies, set up database, run test server
+
 cd codery-master
 pip install -r requirements.txt
 python manage.py syncdb
 python manage.py runserver
 ```
+
+Then go to <http://localhost:8000/admin> to get started.
 
 ## Dependencies
 
