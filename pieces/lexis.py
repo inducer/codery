@@ -3,6 +3,8 @@ import sys
 import re
 import datetime
 
+from django.db import transaction
+
 C457_PARSE_RE = re.compile("^([-A-Z]+): (.*)$", re.MULTILINE)
 DATE_ISH_PARSE_RE = re.compile(r"^([A-Za-z]+),? ([0-9]+)\, ([0-9]+)", re.MULTILINE)
 
@@ -27,6 +29,7 @@ def get_venue(log_lines, venue_name, venue_type):
     return venue
 
 
+@transaction.atomic
 def import_ln_html(study, html_file):
     log_lines = []
 
