@@ -1,5 +1,4 @@
 from __future__ import division
-import sys
 import re
 import datetime
 
@@ -8,7 +7,7 @@ from django.db import transaction
 C457_PARSE_RE = re.compile("^([-A-Z]+): (.*)$", re.MULTILINE)
 DATE_ISH_PARSE_RE = re.compile(r"^([A-Za-z]+),? ([0-9]+)\, ([0-9]+)", re.MULTILINE)
 
-from pieces.models import Piece, Venue, Study
+from pieces.models import Piece, Venue, PieceToStudyAssociation
 
 
 def get_venue(log_lines, venue_name, venue_type):
@@ -30,7 +29,7 @@ def get_venue(log_lines, venue_name, venue_type):
 
 
 @transaction.atomic
-def import_ln_html(study, html_file):
+def import_ln_html(studies, html_file, create_date, creator):
     log_lines = []
 
     from bs4 import BeautifulSoup, Tag
@@ -39,6 +38,7 @@ def import_ln_html(study, html_file):
     current_piece = None
     venue_type = None
     c012s = []
+    extra_data = {}
 
     total_count = [0]
     import_count = [0]
@@ -50,11 +50,16 @@ def import_ln_html(study, html_file):
 
         total_count[0] += 1
 
-        current_piece.copyright = c012s[2]
+        extra_data["COPYRIGHT"] = c012s[2]
         assert len(c012s) == 3
         venue_name = c012s[1].rstrip()
         current_piece.venue = get_venue(log_lines, venue_name, venue_type)
-        current_piece.study = study
+
+        current_piece.create_date = create_date
+        current_piece.creator = creator
+
+        from json import dumps
+        current_piece.extra_data_json = dumps(extra_data)
 
         for piece in Piece.objects.filter(title=current_piece.title):
             if piece.content == current_piece.content:
@@ -65,6 +70,14 @@ def import_ln_html(study, html_file):
 
         import_count[0] += 1
         current_piece.save()
+
+        for study in studies:
+            pts = PieceToStudyAssociation()
+            pts.study = study
+            pts.piece = current_piece
+            pts.create_date = create_date
+            pts.creator = creator
+            pts.save()
 
     for child in soup.body.children:
         if not isinstance(child, Tag):
@@ -80,6 +93,7 @@ def import_ln_html(study, html_file):
 
             c012s = []
             venue_type = None
+            extra_data = {}
 
         if child.name == "br":
             continue
@@ -109,31 +123,17 @@ def import_ln_html(study, html_file):
                 field = match.group(1)
                 value = match.group(2)
 
-                if field == "LENGTH":
-                    continue
-                elif field == "SECTION":
-                    continue
-                elif field == "BYLINE":
-                    current_piece.byline = value.rstrip()
-                elif field == "BYLINE":
+                if field == "BYLINE":
                     current_piece.byline = value.rstrip()
                 elif field == "LOAD-DATE":
-                    current_piece.load_date = datetime.datetime.strptime(value, "%B %d, %Y").date()
-                elif field == "LANGUAGE":
-                    current_piece.language = value.rstrip()
+                    current_piece.source_load_date = \
+                            datetime.datetime.strptime(value, "%B %d, %Y").date()
                 elif field == "PUBLICATION-TYPE":
                     venue_type = value
-                elif field == "DOCUMENT-TYPE":
-                    current_piece.document_type = value.rstrip()
-                elif field == "DATELINE":
-                    current_piece.dateline = value.rstrip()
                 elif field == "URL":
                     current_piece.url = value.rstrip()
-                elif field in ["GRAPHIC", "CORRECTION-DATE", "DISTRIBUTION", "JOURNAL-CODE"]:
-                    # ignore for now
-                    pass
                 else:
-                    raise RuntimeError("unknown c457 field: %s" % field)
+                    extra_data[field] = value.rstrip()
 
             elif key == ("c3", "c1", "c2"):
                 date_match = DATE_ISH_PARSE_RE.match(text)
@@ -142,7 +142,8 @@ def import_ln_html(study, html_file):
 
                 if date_match is None:
                     log_lines.append(
-                            "WARNING: c312 did not match expected date-ish format: '%s'"
+                            "WARNING: c312 did not match expected "
+                            "date-ish format: '%s'"
                             % text[:20].encode("ascii", errors="replace"))
                 else:
                     month = date_match.group(1)
@@ -150,7 +151,8 @@ def import_ln_html(study, html_file):
                     year = date_match.group(3)
 
                     rebuilt_pub_date = "%s %s, %s" % (month, day, year)
-                    current_piece.pub_date = datetime.datetime.strptime(rebuilt_pub_date, "%B %d, %Y").date()
+                    current_piece.pub_date = datetime.datetime.strptime(
+                            rebuilt_pub_date, "%B %d, %Y").date()
 
             elif key in [
                     ("c4", "c8", "c2"),

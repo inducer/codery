@@ -1,24 +1,42 @@
 from django.contrib import admin
 
-from pieces.models import Piece, Venue, Study, Keyword
+from pieces.models import Piece, Venue, Study, Keyword, PieceToStudyAssociation
 
-class PieceAdmin(admin.ModelAdmin):
-    list_filter = ('venue',)
-    search_fields = ('title', 'content')
-    date_hierarchy = "load_date"
 
-    save_on_top = True
-
-admin.site.register(Piece, PieceAdmin)
-
+# {{{ studies
 
 class KeywordInline(admin.StackedInline):
     model = Keyword
     extra = 10
 
+
 class StudyAdmin(admin.ModelAdmin):
     inlines = [KeywordInline]
 
 admin.site.register(Study, StudyAdmin)
+
+# }}}
+
+
+# {{{ pieces
+
+class PieceToStudyInline(admin.StackedInline):
+    model = PieceToStudyAssociation
+    extra = 2
+
+
+class PieceAdmin(admin.ModelAdmin):
+    list_filter = ('venue',)
+    search_fields = ('title', 'content')
+    date_hierarchy = "pub_date"
+
+    save_on_top = True
+
+    inlines = [PieceToStudyInline]
+
+admin.site.register(Piece, PieceAdmin)
+
+# }}}
+
 
 admin.site.register(Venue)

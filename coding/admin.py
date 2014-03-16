@@ -2,6 +2,14 @@ from django.contrib import admin
 
 from coding.models import Sample, CodingAssignment
 
-admin.site.register(Sample)
 
-admin.site.register(CodingAssignment)
+class SampleAdmin(admin.ModelAdmin):
+    filter_horizontal = ("pieces",)
+
+admin.site.register(Sample, SampleAdmin)
+
+
+class CodingAssignmentAdmin(admin.ModelAdmin):
+    list_filter = ("coder", "sample", "state")
+
+admin.site.register(CodingAssignment, CodingAssignmentAdmin)

@@ -3,10 +3,8 @@
 {% load crispy_forms_tags %}
 
 {% block content %}
-  <h2>Import LexisNexis HTML</h2>
+  <h2>{{ form_description }}</h2>
   <div class="well">
     {% crispy form %}
   </div>
 {% endblock %}
-
-

@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
 
+
 class Venue(models.Model):
     name = models.CharField(max_length=200)
     publication_type = models.CharField(max_length=200, null=True)
@@ -44,25 +45,28 @@ class Piece(models.Model):
     venue = models.ForeignKey(Venue)
     pub_date = models.DateField(null=True, blank=True)
     pub_date_unparsed = models.CharField(max_length=1000, null=True, blank=True)
-    load_date = models.DateField(null=True, blank=True)
-    language = models.CharField(max_length=1000, null=True, blank=True)
+
+    source_load_date = models.DateField(null=True, blank=True)
+
     byline = models.CharField(max_length=1000, null=True, blank=True)
-    copyright = models.CharField(max_length=1000, null=True, blank=True)
-    document_type = models.CharField(max_length=1000, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
-    dateline = models.CharField(max_length=100, blank=True, null=True)
 
     create_date = models.DateTimeField(default=datetime.now)
     creator = models.ForeignKey(User)
 
+    extra_data_json = models.TextField(null=True, blank=True)
+
     def __unicode__(self):
         if self.title:
-            return self.title
+            if len(self.title) > 20:
+                return self.title[:20]+"..."
+            else:
+                return self.title
         else:
             return "(no title)"
 
-    def get_absolute_url(self):
-        return "/piece/%d" % self.id
+    #def get_absolute_url(self):
+        #return "/piece/%d" % self.id
 
     class Meta:
         ordering = ["-pub_date", "title"]

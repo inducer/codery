@@ -17,6 +17,10 @@ urlpatterns = patterns('',
 
     url(r'^admin/', include(admin.site.urls)),
 
-    ('^piece/(?P<id>[0-9]+)/$', 'pieces.views.view_piece'),
+    #('^piece/(?P<id>[0-9]+)/$', 'pieces.views.view_piece'),
     ('^piece/import-ln-html/$', 'pieces.views.import_ln_html'),
+
+    #('^coding/view-assignments/$', 'coding.views.view_assignments'),
+    ('^coding/create-sample/$', 'coding.views.create_sample'),
+    ('^coding/assign/$', 'coding.views.assign_to_coders'),
 )
