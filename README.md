@@ -13,7 +13,7 @@ python manage.py syncdb
 python manage.py runserver
 ```
 
-Then go to <http://localhost:8000/admin> to get started.
+Then go to <http://localhost:8000/> to get started.
 
 ## Complete set-up instructions
 
@@ -35,11 +35,11 @@ hash -r
 
 # Download, unpack codery
 
-curl -O https://github.com/inducer/codery/archive/master.zip
-unzip master.zip
+curl -o codery-master.zip https://codeload.github.com/inducer/codery/zip/master
+unzip codery-master.zip
 # - OR -
 # use git (recommended if you have it or plan on making changes)
-git clone https://github.com/inducer/codery
+git clone https://github.com/inducer/codery codery-master
 
 
 # Install dependencies, set up database, run test server
@@ -50,7 +50,7 @@ python manage.py syncdb
 python manage.py runserver
 ```
 
-Then go to <http://localhost:8000/admin> to get started.
+Then go to <http://localhost:8000/> to get started.
 
 ## Dependencies
 
