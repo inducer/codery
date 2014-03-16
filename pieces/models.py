@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import User
+from datetime import datetime
 
 class Venue(models.Model):
     name = models.CharField(max_length=200)
@@ -13,11 +15,14 @@ class Study(models.Model):
     start_date = models.DateField(null=True, blank=True)
     end_date = models.DateField(null=True, blank=True)
 
+    coding_tool_url = models.URLField(null=True, blank=True)
+
     class Meta:
         verbose_name_plural = "studies"
 
     def __unicode__(self):
         return self.name
+
 
 class Keyword(models.Model):
     study = models.ForeignKey(Study)
@@ -29,9 +34,13 @@ class Keyword(models.Model):
 
 class Piece(models.Model):
     title = models.CharField(max_length=1000, blank=True)
-    content = models.TextField(max_length=1000, blank=True)
+    content = models.TextField(blank=True)
 
-    study = models.ForeignKey(Study)
+    notes = models.TextField(null=True, blank=True)
+
+    studies = models.ManyToManyField(Study,
+            through='PieceToStudyAssociation')
+
     venue = models.ForeignKey(Venue)
     pub_date = models.DateField(null=True, blank=True)
     pub_date_unparsed = models.CharField(max_length=1000, null=True, blank=True)
@@ -42,6 +51,9 @@ class Piece(models.Model):
     document_type = models.CharField(max_length=1000, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
     dateline = models.CharField(max_length=100, blank=True, null=True)
+
+    create_date = models.DateTimeField(default=datetime.now)
+    creator = models.ForeignKey(User)
 
     def __unicode__(self):
         if self.title:
@@ -58,3 +70,11 @@ class Piece(models.Model):
         permissions = (
                 ("bulk_import", "Can import pieces in bulk"),
                 )
+
+
+class PieceToStudyAssociation(models.Model):
+    study = models.ForeignKey(Study)
+    piece = models.ForeignKey(Piece)
+
+    create_date = models.DateTimeField(default=datetime.now)
+    creator = models.ForeignKey(User)
