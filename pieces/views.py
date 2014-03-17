@@ -39,8 +39,10 @@ def import_ln_html(request):
 
             was_successful = True
             from datetime import datetime
+            log_lines = []
             try:
-                log_lines = import_ln_html(
+                import_ln_html(
+                        log_lines,
                         form.cleaned_data["studies"],
                         request.FILES["html_file"],
                         create_date=datetime.now(),
@@ -50,7 +52,8 @@ def import_ln_html(request):
             except Exception:
                 was_successful = False
                 from traceback import format_exception
-                log = "".join(format_exception(*sys.exc_info()))
+                log = "\n".join(log_lines) + "".join(
+                        format_exception(*sys.exc_info()))
 
             return render(request, 'bulk-result.html', {
                 "process_description": "Import Result",

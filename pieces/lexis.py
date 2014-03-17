@@ -29,9 +29,7 @@ def get_venue(log_lines, venue_name, venue_type):
 
 
 @transaction.atomic
-def import_ln_html(studies, html_file, create_date, creator):
-    log_lines = []
-
+def import_ln_html(log_lines, studies, html_file, create_date, creator):
     from bs4 import BeautifulSoup, Tag
     soup = BeautifulSoup(html_file.read())
 
@@ -50,8 +48,8 @@ def import_ln_html(studies, html_file, create_date, creator):
 
         total_count[0] += 1
 
-        extra_data["COPYRIGHT"] = c012s[2]
-        assert len(c012s) == 3
+        extra_data["COPYRIGHT"] = c012s[-1]
+        assert 3 <= len(c012s) <= 4, c012s
         venue_name = c012s[1].rstrip()
         current_piece.venue = get_venue(log_lines, venue_name, venue_type)
 
@@ -91,6 +89,7 @@ def import_ln_html(studies, html_file, create_date, creator):
             current_piece = Piece()
             current_piece.content = ""
 
+            log_lines.append("reading item %d..." % (total_count[0] + 2))
             c012s = []
             venue_type = None
             extra_data = {}
@@ -101,8 +100,13 @@ def import_ln_html(studies, html_file, create_date, creator):
         if child.name == "div":
             div_class, = child["class"]
             p = child.p
+            if p is None:
+                continue
             p_class, = p["class"]
             span = p.span
+            if span is None:
+                continue
+
             span_class, = span["class"]
             text = child.get_text()
 
