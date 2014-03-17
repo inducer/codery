@@ -53,8 +53,11 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
         extra_data["COPYRIGHT"] = c012s[-1]
         assert 3 <= len(c012s) <= 4, c012s
 
+        extra_data["CODERY_LN_UPLOAD_NAME"] = html_file.name
+        upload_ordinal = extra_data["CODERY_LN_UPLOAD_ORDINAL"] = c012s[0].rstrip()
+
         log_lines.append("finished reading item %d (marked '%s')..."
-                % (total_count[0], c012s[0].rstrip()))
+                % (total_count[0], upload_ordinal))
         venue_name = c012s[1].rstrip()
         current_piece.venue = get_venue(log_lines, venue_name, venue_type)
 
