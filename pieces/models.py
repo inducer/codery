@@ -82,3 +82,6 @@ class PieceToStudyAssociation(models.Model):
 
     create_date = models.DateTimeField(default=datetime.now)
     creator = models.ForeignKey(User)
+
+    def __unicode__(self):
+        return u"%s - %s" % (self.piece, self.study)

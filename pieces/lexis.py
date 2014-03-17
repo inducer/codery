@@ -42,6 +42,8 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
     import_count = [0]
     dupe_count = [0]
 
+    # {{{ piece finalization
+
     def finalize_current_piece():
         if not c012s:
             return
@@ -50,6 +52,9 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
 
         extra_data["COPYRIGHT"] = c012s[-1]
         assert 3 <= len(c012s) <= 4, c012s
+
+        log_lines.append("finished reading item %d (marked '%s')..."
+                % (total_count[0], c012s[0].rstrip()))
         venue_name = c012s[1].rstrip()
         current_piece.venue = get_venue(log_lines, venue_name, venue_type)
 
@@ -60,7 +65,8 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
         current_piece.extra_data_json = dumps(extra_data)
 
         for piece in Piece.objects.filter(title=current_piece.title):
-            if piece.content == current_piece.content:
+            if (piece.content == current_piece.content
+                    and piece.venue == current_piece.venue):
                 log_lines.append("Duplicate, not imported: %s"
                         % unicode(current_piece))
                 dupe_count[0] += 1
@@ -77,6 +83,8 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
             pts.creator = creator
             pts.save()
 
+    # }}}
+
     for child in soup.body.children:
         if not isinstance(child, Tag):
             continue
@@ -89,7 +97,6 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
             current_piece = Piece()
             current_piece.content = ""
 
-            log_lines.append("reading item %d..." % (total_count[0] + 2))
             c012s = []
             venue_type = None
             extra_data = {}
@@ -180,3 +187,5 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
             % (total_count[0], import_count[0], dupe_count[0]))
 
     return log_lines
+
+# vim: foldmethod=marker
