@@ -1,8 +1,7 @@
-from django.shortcuts import render, get_object_or_404
-from pieces.models import Piece, Keyword, Study
+from django.shortcuts import render
+from pieces.models import Study
 
 from django.contrib.auth.decorators import (
-        login_required,
         permission_required)
 
 from crispy_forms.helper import FormHelper
@@ -10,41 +9,7 @@ from crispy_forms.layout import Submit
 
 import django.forms as forms
 
-import re
 import sys
-
-
-class Highlighter:
-    def __init__(self, study):
-        keywords = [kw.word for kw in Keyword.objects.filter(study=study)]
-        self.keyword_res = [re.compile(re.escape(word), re.IGNORECASE)
-                for word in keywords]
-
-    def __call__(self, text):
-        def add_highight(t):
-            return '<span style="color:red; font-weight:bold;">%s</span>' \
-                    % t.group(0)
-
-        for kwre in self.keyword_res:
-            text, _ = kwre.subn(add_highight, text)
-
-        return text
-
-
-@login_required
-def view_piece(request, id):
-    # TODO Delete me
-    piece = get_object_or_404(Piece, pk=id)
-
-    paragraphs = piece.content.split("\n")
-
-    highlighter = Highlighter(piece.study)
-
-    content = "\n".join(
-            "<p>%s</p>" % highlighter(paragraph)
-            for paragraph in paragraphs)
-
-    return render(request, "pieces/piece.html", dict(piece=piece, content=content))
 
 
 # {{{ lexis nexis import

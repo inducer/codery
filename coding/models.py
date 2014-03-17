@@ -25,6 +25,19 @@ class Sample(models.Model):
                 )
 
 
+class assignment_states:
+    not_started = "NS"
+    started = "ST"
+    finished = "FI"
+
+
+STATE_CHOICES = (
+        (assignment_states.not_started, "Not started"),
+        (assignment_states.started, "Started"),
+        (assignment_states.finished, "Finished"),
+        )
+
+
 class CodingAssignment(models.Model):
     coder = models.ForeignKey(User, related_name="coding_assignments")
     piece = models.ForeignKey(Piece)
@@ -35,17 +48,16 @@ class CodingAssignment(models.Model):
     notes = models.TextField(null=True, blank=True)
 
     state = models.CharField(max_length=10,
-            choices=[
-                ("NS", "Not started"),
-                ("ST", "Started"),
-                ("FI", "Finished"),
-                ])
+            choices=STATE_CHOICES)
     latest_state_time = models.DateTimeField(default=datetime.now)
 
     latest_coding_form_url = models.URLField(null=True, blank=True)
 
     creation_time = models.DateTimeField(default=datetime.now)
     creator = models.ForeignKey(User)
+
+    def get_absolute_url(self):
+        return "/coding/assignment/%d/" % self.id
 
     def __unicode__(self):
         return u"%s -> %s (%s)" % (self.piece, self.coder, self.sample.name)

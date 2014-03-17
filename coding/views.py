@@ -1,6 +1,8 @@
 from django.shortcuts import render
+import re
 
 import django.forms as forms
+from django.http import HttpResponseForbidden
 
 from django.contrib.auth.models import User
 
@@ -9,7 +11,7 @@ from crispy_forms.layout import Submit
 
 #import sys
 from pieces.models import Keyword, Study, PieceToStudyAssociation
-from coding.models import Sample, CodingAssignment
+from coding.models import Sample, CodingAssignment, assignment_states, STATE_CHOICES
 
 from django.contrib.auth.decorators import (
         login_required,
@@ -223,6 +225,108 @@ def assign_to_coders(request):
     return render(request, 'generic-form.html', {
         "form": form,
         "form_description": "Assign work to coders",
+    })
+
+# }}}
+
+
+# {{{ view assignments
+
+@login_required
+def view_assignments(request):
+    started = CodingAssignment.objects.filter(
+            state=assignment_states.started, coder=request.user)
+    not_started = CodingAssignment.objects.filter(
+            state=assignment_states.not_started, coder=request.user)
+    finished = CodingAssignment.objects.filter(
+            state=assignment_states.finished, coder=request.user)
+
+    return render(request, 'coding/assignments.html', {
+        "started": started,
+        "not_started": not_started,
+        "finished": finished,
+    })
+
+# }}}
+
+
+# {{{ view assignment
+
+class AssignmentUpdateForm(forms.Form):
+    state = forms.ChoiceField(choices=STATE_CHOICES)
+
+    latest_coding_form_url = forms.URLField(required=False)
+    notes = forms.CharField(widget=forms.Textarea, required=False)
+
+    def __init__(self, *args, **kwargs):
+        self.helper = FormHelper()
+        self.helper.form_class = "form-horizontal"
+        self.helper.label_class = "col-lg-2"
+        self.helper.field_class = "col-lg-8"
+
+        self.helper.add_input(
+                Submit("submit", "Update", css_class="col-lg-offset-2"))
+        super(AssignmentUpdateForm, self).__init__(*args, **kwargs)
+
+
+class Highlighter:
+    def __init__(self, study):
+        keywords = [kw.word for kw in Keyword.objects.filter(study=study)]
+        self.keyword_res = [re.compile(re.escape(word), re.IGNORECASE)
+                for word in keywords]
+
+    def __call__(self, text):
+        def add_highight(t):
+            return '<span style="color:red; font-weight:bold;">%s</span>' \
+                    % t.group(0)
+
+        for kwre in self.keyword_res:
+            text, _ = kwre.subn(add_highight, text)
+
+        return text
+
+
+@login_required
+def view_assignment(request, id):
+    assignment = CodingAssignment.objects.get(id=id)
+
+    if assignment.coder != request.user:
+        return HttpResponseForbidden(
+                "Not your assignment.", content_type="text/plain")
+
+    if request.method == "POST":
+        form = AssignmentUpdateForm(request.POST, request.FILES)
+        if form.is_valid():
+            assignment.latest_coding_form_url = \
+                    form.cleaned_data["latest_coding_form_url"]
+            assignment.state = \
+                    form.cleaned_data["state"]
+            assignment.notes = \
+                    form.cleaned_data["notes"]
+            from datetime import datetime
+            assignment.latest_state_time = datetime.now()
+            assignment.save()
+    else:
+        form = AssignmentUpdateForm({
+            "state": assignment.state,
+            "latest_coding_form_url": assignment.latest_coding_form_url,
+            "notes": assignment.notes,
+            })
+
+    piece = assignment.piece
+    paragraphs = piece.content.split("\n")
+
+    highlighter = Highlighter(assignment.sample.study)
+
+    content = "\n".join(
+            "<p>%s</p>" % highlighter(paragraph)
+            for paragraph in paragraphs)
+
+    return render(request, 'coding/assignment.html', {
+        "assignment": assignment,
+        "piece": assignment.piece,
+        "content": content,
+        "form": form,
     })
 
 # }}}

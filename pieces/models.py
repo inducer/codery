@@ -58,8 +58,8 @@ class Piece(models.Model):
 
     def __unicode__(self):
         if self.title:
-            if len(self.title) > 20:
-                return self.title[:20]+"..."
+            if len(self.title) > 30:
+                return self.title[:30]+"..."
             else:
                 return self.title
         else:
