@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}My assignments - Codery{% endblock %}
+
+{% block content %}
+  {% if started %}
+    <h2>Started assignments</h2>
+    <ul>
+    {% for assmt in started %}
+    <li>
+      <a href="{{ assmt.get_absolute_url }}">{{assmt.piece}}</a>
+      (Sample: {{assmt.sample.name}}, started at {{assmt.latest_state_time}})
+    </li>
+    {% endfor %}
+    </ul>
+    ({{ started.count }} assignments.)
+  {% endif %}
+
+  {% if not_started %}
+    <h2>Assignments not yet started</h2>
+    <ul>
+    {% for assmt in not_started %}
+    <li>
+      <a href="{{ assmt.get_absolute_url }}">{{assmt.piece}}</a>
+      (Sample: {{assmt.sample.name}}, added at {{assmt.latest_state_time}})
+    </li>
+    {% endfor %}
+    </ul>
+    ({{ not_started.count }} assignments.)
+  {% endif %}
+
+  {% if finished %}
+    <h2>Finished assignments</h2>
+    <ul>
+    {% for assmt in finished %}
+    <li>
+      <a href="{{ assmt.get_absolute_url }}">{{assmt.piece}}</a>
+      (Sample: {{assmt.sample.name}}, finished at {{assmt.latest_state_time}})
+    </li>
+    {% endfor %}
+    </ul>
+    ({{ finished.count }} assignments.)
+  {% endif %}
+{% endblock %}

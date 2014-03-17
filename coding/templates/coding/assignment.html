@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block title %}{{ assignment.piece.title }} - Codery{% endblock %}
+
+{% block content %}
+  <h1>{{piece.title}}</h1>
+
+  <hr>
+  <p> <b>Piece ID:</b> {{piece.id}} </p>
+  <p> <b>Venue:</b> {{piece.venue}} (Venue ID: {{piece.venue.id}}) </p>
+  <p> <b>Publication Date:</b> {{piece.pub_date}} (Original: {{piece.pub_date_unparsed}}) </p>
+  <p> <b>Source Load Date:</b> {{piece.source_load_date}} </p>
+  <p> <b>URL:</b> {{piece.url}} </p>
+  <p> <b>Byline:</b> {{piece.byline}} </p>
+  <hr>
+  {{content|safe}}
+  <hr>
+
+  Links:
+  <ul>
+    {% if assignment.latest_coding_form_url %}
+    <li>
+    <a href="{{ assignment.latest_coding_form_url }}">Pick up where you left off</a>
+    </li>
+    {% endif %}
+    {% if assignment.sample.study.coding_tool_url %}
+    <li>
+    <a href="{{ assignment.sample.study.coding_tool_url }}">Start coding</a>
+
+    <p>
+    Unique identifier for copy-and-pasting into coding tool: 
+    <b>
+      A{{ assignment.id }}-S{{ assignment.sample.id }}-C{{ assignment.coder.id }}-P{{ assignment.piece.id }}
+    </b>
+    </p>
+
+    </li>
+    {% else %}
+    <li>
+    Error: No coding tool URL defined! (Yell at your supervisor. They need to fix it.)
+    </li>
+    {% endif %}
+  </ul>
+
+
+  <div class="well">
+    {% crispy form %}
+  </div>
+{% endblock %}
+
