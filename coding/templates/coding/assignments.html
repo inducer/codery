@@ -41,4 +41,8 @@
     </ul>
     ({{ finished.count }} assignments.)
   {% endif %}
+
+  {% if not (started or not_started or finished) %}
+  No assignments found.
+  {% endif %}
 {% endblock %}
