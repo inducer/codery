@@ -49,11 +49,6 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
     from bs4 import BeautifulSoup, Tag
     soup = BeautifulSoup(html_file.read())
 
-    current_piece = None
-    venue_type = None
-    c012s = []
-    extra_data = {}
-
     total_count = [0]
     import_count = [0]
     dupe_count = [0]
@@ -109,6 +104,11 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
             pts.save()
 
     # }}}
+
+    current_piece = None
+    venue_type = None
+    c012s = []
+    extra_data = {}
 
     for child in soup.body.children:
         if not isinstance(child, Tag):
