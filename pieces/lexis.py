@@ -22,10 +22,26 @@ def get_venue(log_lines, venue_name, venue_type):
     venue, = venues
     if venue.publication_type != venue_type:
         log_lines.append(
-                "WARNING: Venue '%s' switched types from '%s' to '%s'"
+                "WARNING: Venue '%s' switched types from '%s' (in database) "
+                "to '%s' (in imported piece)"
                 % (venue.name, venue.publication_type, venue_type))
 
     return venue
+
+
+def parse_date_leniently(text):
+    date_match = DATE_ISH_PARSE_RE.match(text)
+
+    if date_match is not None:
+        month = date_match.group(1)
+        day = date_match.group(2)
+        year = date_match.group(3)
+
+        rebuilt_pub_date = "%s %s, %s" % (month, day, year)
+        return datetime.datetime.strptime(
+                rebuilt_pub_date, "%B %d, %Y")
+    else:
+        return None
 
 
 @transaction.atomic
@@ -56,8 +72,6 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
         extra_data["CODERY_LN_UPLOAD_NAME"] = html_file.name
         upload_ordinal = extra_data["CODERY_LN_UPLOAD_ORDINAL"] = c012s[0].rstrip()
 
-        log_lines.append("finished reading item %d (marked '%s')..."
-                % (total_count[0], upload_ordinal))
         venue_name = c012s[1].rstrip()
         current_piece.venue = get_venue(log_lines, venue_name, venue_type)
 
@@ -67,16 +81,24 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
         from json import dumps
         current_piece.extra_data_json = dumps(extra_data)
 
+        if not current_piece.title:
+            log_lines.append("WARNING: no title on item %d (marked '%s')..."
+                    % (total_count[0], upload_ordinal))
+
         for piece in Piece.objects.filter(title=current_piece.title):
             if (piece.content == current_piece.content
                     and piece.venue == current_piece.venue):
-                log_lines.append("Duplicate, not imported: %s"
-                        % unicode(current_piece))
+                log_lines.append("did not import item %d "
+                        "-- duplicate (marked '%s')..."
+                        % (total_count[0], upload_ordinal))
                 dupe_count[0] += 1
                 return
 
         import_count[0] += 1
         current_piece.save()
+
+        log_lines.append("imported item %d (marked '%s')..."
+                % (total_count[0], upload_ordinal))
 
         for study in studies:
             pts = PieceToStudyAssociation()
@@ -119,69 +141,65 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
 
             span_class, = span["class"]
             text = child.get_text()
+            loggable_text = text.rstrip()[:20].encode("ascii", errors="replace")
 
-            key = (div_class, p_class, span_class)
-            if key == ("c0", "c1", "c2"):
-                c012s.append(text)
-            elif key == ("c4", "c5", "c6"):
+            key = "".join([div_class, p_class, span_class])
+
+            if key == "c0c1c2":
+                c012s.append(text.rstrip())
+            elif key in ["c4c5c6", "c5c6c7"]:
                 current_piece.title = text.rstrip()
-            elif key == ("c4", "c5", "c7"):
+            elif key in ["c4c5c7", "c5c6c8"]:
                 match = C457_PARSE_RE.match(text)
                 if match is None:
                     log_lines.append(
                             "WARNING: c457 did not match expected format: '%s'"
-                            % text[:20].encode("ascii", errors="replace"))
+                            % loggable_text)
 
                     continue
 
                 field = match.group(1)
-                value = match.group(2)
+                value = match.group(2).rstrip()
 
                 if field == "BYLINE":
-                    current_piece.byline = value.rstrip()
+                    current_piece.byline = value
                 elif field == "LOAD-DATE":
                     current_piece.source_load_date = \
-                            datetime.datetime.strptime(value, "%B %d, %Y").date()
+                            parse_date_leniently(value)
                 elif field == "PUBLICATION-TYPE":
                     venue_type = value
                 elif field == "URL":
-                    current_piece.url = value.rstrip()
+                    current_piece.url = value
                 else:
-                    extra_data[field] = value.rstrip()
+                    extra_data[field] = value
 
-            elif key == ("c3", "c1", "c2"):
-                date_match = DATE_ISH_PARSE_RE.match(text)
+            elif key in ["c3c1c2", "c3c1c4"]:
+                parsed_date = parse_date_leniently(text)
 
-                current_piece.pub_date_unparsed = text.rstrip()
-
-                if date_match is None:
+                if parsed_date is None:
                     log_lines.append(
-                            "WARNING: c312 did not match expected "
-                            "date-ish format: '%s'"
-                            % text[:20].encode("ascii", errors="replace"))
+                            "WARNING: %s did not match expected "
+                            "date-ish format: '%s', treating as c012"
+                            % (key, loggable_text))
+                    c012s.append(text.rstrip())
                 else:
-                    month = date_match.group(1)
-                    day = date_match.group(2)
-                    year = date_match.group(3)
-
-                    rebuilt_pub_date = "%s %s, %s" % (month, day, year)
-                    current_piece.pub_date = datetime.datetime.strptime(
-                            rebuilt_pub_date, "%B %d, %Y").date()
+                    current_piece.pub_date_unparsed = text.rstrip()
+                    current_piece.pub_date = parsed_date
 
             elif key in [
-                    ("c4", "c8", "c2"),
-                    ("c4", "c8", "c7"),
-                    ("c4", "c8", "c9"),
-                    ("c4", "c5", "c2"),
-                    ("c4", "c8", "c11"),
+                    "c4c8c2",
+                    "c4c8c7",
+                    "c4c8c9",
+                    "c4c5c2",
+                    "c4c8c11",
+                    "c5c9c2",
                     ]:
                 # body text
 
                 current_piece.content += text
             else:
                 #print text
-                raise RuntimeError(
-                        "unknown doc key: %s" % str(key))
+                raise RuntimeError("unknown doc key: %s" % key)
 
     finalize_current_piece()
 
