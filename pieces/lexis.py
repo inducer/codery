@@ -203,10 +203,10 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
 
     finalize_current_piece()
 
-    log_lines = [ll.replace("\n", "<newline>") for ll in log_lines]
-    log_lines.append("%d items total, %d imported, %d duplicate"
+    new_log_lines = [ll.replace("\n", "[newline]") for ll in log_lines]
+    new_log_lines.append("%d items total, %d imported, %d duplicate"
             % (total_count[0], import_count[0], dupe_count[0]))
 
-    return log_lines
+    log_lines[:] = new_log_lines
 
 # vim: foldmethod=marker
