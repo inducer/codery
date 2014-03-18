@@ -42,7 +42,7 @@
     ({{ finished.count }} assignments.)
   {% endif %}
 
-  {% if not (started or not_started or finished) %}
+  {% if nothing_here %}
   No assignments found.
   {% endif %}
 {% endblock %}

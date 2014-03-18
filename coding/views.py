@@ -245,6 +245,7 @@ def view_assignments(request):
         "started": started,
         "not_started": not_started,
         "finished": finished,
+        "nothing_here": not (started or not_started or finished),
     })
 
 # }}}
