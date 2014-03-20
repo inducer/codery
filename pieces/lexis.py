@@ -76,10 +76,6 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
         from json import dumps
         current_piece.extra_data_json = dumps(extra_data)
 
-        if not current_piece.title:
-            log_lines.append("WARNING: no title on item %d (marked '%s')..."
-                    % (total_count[0], upload_ordinal))
-
         for piece in Piece.objects.filter(title=current_piece.title):
             if (piece.content == current_piece.content
                     and piece.venue == current_piece.venue):
@@ -92,8 +88,20 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
         import_count[0] += 1
         current_piece.save()
 
-        log_lines.append("imported item %d (marked '%s')..."
-                % (total_count[0], upload_ordinal))
+        if not current_piece.content:
+            log_lines.append("WARNING: Empty content in item %d (marked '%s')"
+                    % (total_count[0], upload_ordinal))
+        if not current_piece.title:
+            log_lines.append("WARNING: no title on item %d (marked '%s')..."
+                    % (total_count[0], upload_ordinal))
+
+        log_lines.append("imported item %d (marked '%s'), "
+                "%d characters in title, %d characters in body..."
+                % (
+                    total_count[0], upload_ordinal,
+                    len(current_piece.title),
+                    len(current_piece.content),
+                    ))
 
         for study in studies:
             pts = PieceToStudyAssociation()
@@ -149,12 +157,16 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
                 c012s.append(text.rstrip())
             elif key in ["c4c5c6", "c5c6c7"]:
                 current_piece.title = text.rstrip()
-            elif key in ["c4c5c7", "c5c6c8"]:
+            elif (
+                    key.startswith("c5c6")
+                    or key in ["c4c5c7", "c5c6c8", "c5c6c2"]
+                    ):
                 match = C457_PARSE_RE.match(text)
                 if match is None:
                     log_lines.append(
-                            "WARNING: c457 did not match expected format: '%s'"
-                            % loggable_text)
+                            "WARNING: %s did not match expected format: "
+                            "'%s' (%d characters total)"
+                            % (key, loggable_text, len(text)))
 
                     continue
 
@@ -186,17 +198,15 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
                     current_piece.pub_date_unparsed = text.rstrip()
                     current_piece.pub_date = parsed_date
 
-            elif key in [
-                    "c4c8c2",
-                    "c4c8c7",
-                    "c4c8c9",
+            elif key.startswith("c4c8") or key.startswith("c5c9") or key in [
                     "c4c5c2",
-                    "c4c8c11",
-                    "c5c9c2",
                     ]:
                 # body text
 
                 current_piece.content += text
+            elif key in ["c5c6c15", "c4c5c13"]:
+                # header text
+                pass
             else:
                 #print text
                 raise RuntimeError("unknown doc key: %s" % key)
