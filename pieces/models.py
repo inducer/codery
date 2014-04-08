@@ -25,12 +25,67 @@ class Study(models.Model):
         return self.name
 
 
+class keyword_rule:
+    substring = "sub"
+    word = "word"
+    word_wildcard = "word_wildcard"
+    regular_expression = "regex"
+
+
+KW_RULE_CHOICES = (
+        (keyword_rule.substring, "Substring"),
+        (keyword_rule.word, "Word"),
+        (keyword_rule.word_wildcard, "Word with wildcards"),
+        (keyword_rule.regular_expression, "Regular expression"),
+        )
+
+COLOR_CHOICES = (
+        ("red", "Red"),
+        ("green", "Green"),
+        ("blue", "Blue"),
+        ("cyan", "Cyan"),
+        ("magenta", "Magenta"),
+        ("black", "Black"),
+        )
+
+
 class Keyword(models.Model):
     study = models.ForeignKey(Study)
-    word = models.CharField(max_length=200)
+    rule = models.CharField(
+            max_length=20, choices=KW_RULE_CHOICES,
+            help_text="The 'Substring' rule matches any occurrence "
+            "of the pattern anywhere. For example, 'flu' would match "
+            "'influence'.\n"
+            "The 'Word' rule matches only entire words.\n"
+            "The 'Word wildcard' rule matches entire words against "
+            "a pattern with * (any number of characters, including zero) "
+            "and ? (single character) wildcards. For example, '*at' "
+            "would match 'cat' and 'brat', but not 'dedication'.\n"
+            "Regular expressions allow very general matching. "
+            "Search the Internt for 'python re' to learn more."
+            )
+    pattern = models.CharField(max_length=1000)
+    color = models.CharField(max_length=50, choices=COLOR_CHOICES)
 
     def __unicode__(self):
-        return self.word
+        return "%s: %s" % (self.rule, self.pattern)
+
+    def get_re(self):
+        import re
+        if self.rule == keyword_rule.substring:
+            return re.escape(self.pattern)
+        elif self.rule == keyword_rule.word:
+            return r"\b" + re.escape(self.pattern) + r"\b"
+        elif self.rule == keyword_rule.word_wildcard:
+            result = r"\b" + re.escape(self.pattern) + r"\b"
+            result = (result
+                    .replace(r"\*", r"\S*?")
+                    .replace(r"\?", "\S"))
+            return result
+        elif self.rule == keyword_rule.regular_expression:
+            return self.pattern
+        else:
+            raise RuntimeError("invalid keyword rule")
 
 
 class Piece(models.Model):

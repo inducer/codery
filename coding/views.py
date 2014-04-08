@@ -272,16 +272,15 @@ class AssignmentUpdateForm(forms.Form):
 
 class Highlighter:
     def __init__(self, study):
-        keywords = [kw.word for kw in Keyword.objects.filter(study=study)]
-        self.keyword_res = [re.compile(re.escape(word), re.IGNORECASE)
-                for word in keywords]
+        self.study = study
 
     def __call__(self, text):
         def add_highight(t):
-            return '<span style="color:red; font-weight:bold;">%s</span>' \
-                    % t.group(0)
+            return '<span style="color:%s; font-weight:bold;">%s</span>' \
+                    % (kw.color, t.group(0))
 
-        for kwre in self.keyword_res:
+        for kw in Keyword.objects.filter(study=self.study):
+            kwre = re.compile(kw.get_re(), re.IGNORECASE)
             text, _ = kwre.subn(add_highight, text)
 
         return text

@@ -5,7 +5,7 @@ from pieces.models import Piece, Venue, Study, Keyword, PieceToStudyAssociation
 
 # {{{ studies
 
-class KeywordInline(admin.StackedInline):
+class KeywordInline(admin.TabularInline):
     model = Keyword
     extra = 10
 
