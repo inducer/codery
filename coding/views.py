@@ -112,6 +112,7 @@ class AssignToCodersForm(forms.Form):
     assign_only_unassigned_pieces = forms.BooleanField(required=False)
     coders = forms.ModelMultipleChoiceField(User.objects, required=True)
     pieces_per_coder = forms.IntegerField(required=True)
+    pick_pieces_somewhat_randomly = forms.BooleanField(required=True)
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -126,15 +127,22 @@ class AssignToCodersForm(forms.Form):
 
 @transaction.atomic
 def assign_to_coders_backend(sample, assign_only_unassigned_pieces,
-        coders, pieces_per_coder, creation_time, creator):
+        coders, pieces_per_coder,
+        pick_pieces_somewhat_randomly,
+        creation_time, creator):
     log_lines = []
 
     coder_idx_to_count = {}
 
     num_coders = len(coders)
 
+    pieces = sample.pieces.all()
+    if pick_pieces_somewhat_randomly:
+        from random import shuffle
+        pieces = shuffle(list(pieces))
+
     coder_idx = 0
-    for piece in sample.pieces.all():
+    for piece in pieces:
         if (assign_only_unassigned_pieces
                 and CodingAssignment.objects.filter(
                     sample=sample, piece=piece).count()):
@@ -165,7 +173,7 @@ def assign_to_coders_backend(sample, assign_only_unassigned_pieces,
         assmt.coder = coders[local_coder_idx]
         assmt.piece = piece
         assmt.sample = sample
-        assmt.state = "NS"
+        assmt.state = assignment_states.not_started
         assmt.latest_state_time = creation_time
         assmt.creation_time = creation_time
         assmt.creator = creator
@@ -206,6 +214,8 @@ def assign_to_coders(request):
                     form.cleaned_data["assign_only_unassigned_pieces"],
                     form.cleaned_data["coders"],
                     form.cleaned_data["pieces_per_coder"],
+                    pick_pieces_somewhat_randomly=
+                    form.cleaned_data["pick_pieces_somewhat_randomly"],
                     creation_time=datetime.now(),
                     creator=request.user)
 
@@ -234,12 +244,21 @@ def assign_to_coders(request):
 
 @login_required
 def view_assignments(request):
-    started = CodingAssignment.objects.filter(
-            state=assignment_states.started, coder=request.user)
-    not_started = CodingAssignment.objects.filter(
-            state=assignment_states.not_started, coder=request.user)
-    finished = CodingAssignment.objects.filter(
-            state=assignment_states.finished, coder=request.user)
+    started = (
+            CodingAssignment.objects
+            .filter(state=assignment_states.started, coder=request.user)
+            .order_by('sample', 'piece__title')
+            )
+    not_started = (
+            CodingAssignment.objects
+            .filter(state=assignment_states.not_started, coder=request.user)
+            .order_by('sample', 'piece__title')
+            )
+    finished = (
+            CodingAssignment.objects
+            .filter(state=assignment_states.finished, coder=request.user)
+            .order_by('sample', 'piece__title')
+            )
 
     return render(request, 'coding/assignments.html', {
         "started": started,

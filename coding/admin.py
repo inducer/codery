@@ -11,5 +11,8 @@ admin.site.register(Sample, SampleAdmin)
 
 class CodingAssignmentAdmin(admin.ModelAdmin):
     list_filter = ("coder", "sample", "state")
+    list_display = ("piece", "coder", "sample", "state", "creation_time")
+
+    search_fields = ('piece__title', 'sample__name')
 
 admin.site.register(CodingAssignment, CodingAssignmentAdmin)
