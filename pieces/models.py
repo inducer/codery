@@ -123,9 +123,6 @@ class Piece(models.Model):
         else:
             return "(no title)"
 
-    #def get_absolute_url(self):
-        #return "/piece/%d" % self.id
-
     class Meta:
         ordering = ["-pub_date", "title"]
 
