@@ -1,5 +1,5 @@
-from django.shortcuts import render
-from pieces.models import Study
+from django.shortcuts import render, get_object_or_404
+from pieces.models import Study, Piece
 
 from django.contrib.auth.decorators import (
         permission_required)
@@ -10,6 +10,20 @@ from crispy_forms.layout import Submit
 import django.forms as forms
 
 import sys
+
+
+def show_piece(request, id):
+    piece = get_object_or_404(Piece, pk=id)
+    paragraphs = piece.content.split("\n")
+
+    content = "\n".join(
+            "<p>%s</p>" % paragraph
+            for paragraph in paragraphs)
+    return render(request, 'pieces/piece.html', {
+        "piece": piece,
+        "content": content,
+
+        })
 
 
 # {{{ lexis nexis import

@@ -111,6 +111,9 @@ class Piece(models.Model):
 
     extra_data_json = models.TextField(null=True, blank=True)
 
+    def get_absolute_url(self):
+        return "/piece/%d/" % self.id
+
     def __unicode__(self):
         if self.title:
             if len(self.title) > 30:
