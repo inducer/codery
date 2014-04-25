@@ -18,16 +18,21 @@
   {{content|safe}}
   <hr>
 
-  Links:
   <ul>
     {% if assignment.latest_coding_form_url %}
     <li>
     <a href="{{ assignment.latest_coding_form_url }}">Pick up where you left off</a>
+    (This links to the URL you entered into 'latest coding form URL' earlier.)
     </li>
     {% endif %}
-    {% if assignment.sample.study.coding_tool_url %}
     <li>
+    {% if assignment.sample.study.coding_tool_url %}
     <a href="{{ assignment.sample.study.coding_tool_url }}">Start coding</a>
+    {% if assignment.latest_coding_form_url %}
+      <it>(You likely don't want to do this. You have already started coding this
+      piece, and the link to that unfinished form is available above.)
+    {% endif %}
+    {% endif %}
 
     <p>
     Unique identifier for copy-and-pasting into coding tool: 
@@ -37,11 +42,6 @@
     </p>
 
     </li>
-    {% else %}
-    <li>
-    Error: No coding tool URL defined! (Yell at your supervisor. They need to fix it.)
-    </li>
-    {% endif %}
   </ul>
 
 

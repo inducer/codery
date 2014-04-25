@@ -27,6 +27,8 @@ class CreateSampleForm(forms.Form):
             queryset=Study.objects, required=True)
     name = forms.CharField(min_length=1)
     sample_size = forms.IntegerField(required=True)
+    month = forms.IntegerField(required=False)
+    year = forms.IntegerField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -54,9 +56,15 @@ class CreateSampleForm(forms.Form):
 
 
 @transaction.atomic
-def create_sample_backend(study, name, sample_size, create_date, creator):
-    pieces = [pts.piece
-            for pts in PieceToStudyAssociation.objects.filter(study=study)]
+def create_sample_backend(study, name, sample_size, create_date,
+        year, month, creator):
+    queryset = PieceToStudyAssociation.objects.filter(study=study)
+    if year is not None:
+        queryset = queryset.filter(piece__pub_date__year=year)
+    if month is not None:
+        queryset = queryset.filter(piece__pub_date__month=month)
+
+    pieces = [pts.piece for pts in queryset]
 
     from random import sample
     selected = sample(pieces, sample_size)
@@ -81,9 +89,11 @@ def create_sample(request):
 
             from datetime import datetime
             create_sample_backend(
-                    form.cleaned_data["study"],
-                    form.cleaned_data["name"],
-                    form.cleaned_data["sample_size"],
+                    study=form.cleaned_data["study"],
+                    name=form.cleaned_data["name"],
+                    sample_size=form.cleaned_data["sample_size"],
+                    month=form.cleaned_data["month"],
+                    year=form.cleaned_data["year"],
                     create_date=datetime.now(),
                     creator=request.user)
 
@@ -275,7 +285,11 @@ def view_assignments(request):
 class AssignmentUpdateForm(forms.Form):
     state = forms.ChoiceField(choices=STATE_CHOICES)
 
-    latest_coding_form_url = forms.URLField(required=False)
+    latest_coding_form_url = forms.URLField(required=False,
+            help_text="This field is intended to hold the "
+            "'resume filling out this form' link that UIUC FormBuilder "
+            "likes to email around. If you fill out this field, this URL "
+            "will be available as a clickable link above when you come back.")
     notes = forms.CharField(widget=forms.Textarea, required=False)
 
     def __init__(self, *args, **kwargs):
