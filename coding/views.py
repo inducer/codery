@@ -227,11 +227,17 @@ def assign_to_coders_backend(sample,
                     % piece_identifier)
             continue
 
-        assign_times = max(
-                0,
-                min(
-                    max_assignments_per_piece-n_piece_assignments,
-                    assign_each_piece_n_times))
+        assign_times = assign_each_piece_n_times
+
+        if max_assignments_per_piece is not None:
+            max_assign_times = assign_times = max(
+                    0,
+                    max_assignments_per_piece
+                    - n_piece_assignments)
+
+            assign_times = min(
+                    max_assign_times,
+                    assign_times)
 
         if assign_times == 0:
             log_lines.append("Piece '%s' has reached max assignment count, skipping."
