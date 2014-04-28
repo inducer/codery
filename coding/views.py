@@ -122,7 +122,7 @@ class AssignToCodersForm(forms.Form):
     assign_only_unassigned_pieces = forms.BooleanField(required=False)
     coders = forms.ModelMultipleChoiceField(User.objects, required=True)
     pieces_per_coder = forms.IntegerField(required=True)
-    pick_pieces_somewhat_randomly = forms.BooleanField(required=True)
+    pick_pieces_somewhat_randomly = forms.BooleanField(required=False)
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -148,8 +148,9 @@ def assign_to_coders_backend(sample, assign_only_unassigned_pieces,
 
     pieces = sample.pieces.all()
     if pick_pieces_somewhat_randomly:
+        pieces = list(pieces)
         from random import shuffle
-        pieces = shuffle(list(pieces))
+        shuffle(pieces)
 
     coder_idx = 0
     for piece in pieces:
