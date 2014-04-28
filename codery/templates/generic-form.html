@@ -4,6 +4,7 @@
 
 {% block content %}
   <h2>{{ form_description }}</h2>
+  {{ doc | safe }}
   <div class="well">
     {% crispy form %}
   </div>

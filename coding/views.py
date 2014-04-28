@@ -1,5 +1,6 @@
 from django.shortcuts import render
 import re
+import sys
 
 import django.forms as forms
 from django.http import HttpResponseForbidden
@@ -119,10 +120,13 @@ def create_sample(request):
 class AssignToCodersForm(forms.Form):
     sample = forms.ModelChoiceField(
             queryset=Sample.objects, required=True)
-    assign_only_unassigned_pieces = forms.BooleanField(required=False)
+    limit_to_unassigned = forms.BooleanField(required=False)
+    shuffle_pieces_before_assigning = forms.BooleanField(required=False)
+    assign_each_piece_n_times = forms.IntegerField(required=True, initial=1)
+    max_assignments_per_piece = forms.IntegerField(required=False)
     coders = forms.ModelMultipleChoiceField(User.objects, required=True)
-    pieces_per_coder = forms.IntegerField(required=True)
-    pick_pieces_somewhat_randomly = forms.BooleanField(required=False)
+    pieces_per_coder = forms.IntegerField(required=True,
+            help_text="(does not count previously assigned pieces)")
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -135,11 +139,70 @@ class AssignToCodersForm(forms.Form):
         super(AssignToCodersForm, self).__init__(*args, **kwargs)
 
 
+def trim_docstring(docstring):
+    # from http://legacy.python.org/dev/peps/pep-0257/
+    if not docstring:
+        return ''
+    # Convert tabs to spaces (following the normal Python rules)
+    # and split into a list of lines:
+    lines = docstring.expandtabs().splitlines()
+    # Determine minimum indentation (first line doesn't count):
+    indent = sys.maxint
+    for line in lines[1:]:
+        stripped = line.lstrip()
+        if stripped:
+            indent = min(indent, len(line) - len(stripped))
+    # Remove indentation (first line is special):
+    trimmed = [lines[0].strip()]
+    if indent < sys.maxint:
+        for line in lines[1:]:
+            trimmed.append(line[indent:].rstrip())
+    # Strip off trailing and leading blank lines:
+    while trimmed and not trimmed[-1]:
+        trimmed.pop()
+    while trimmed and not trimmed[0]:
+        trimmed.pop(0)
+    # Return a single string:
+    return '\n'.join(trimmed)
+
+
 @transaction.atomic
-def assign_to_coders_backend(sample, assign_only_unassigned_pieces,
+def assign_to_coders_backend(sample,
+        limit_to_unassigned,
+        shuffle_pieces_before_assigning,
+        assign_each_piece_n_times,
+        max_assignments_per_piece,
         coders, pieces_per_coder,
-        pick_pieces_somewhat_randomly,
         creation_time, creator):
+    """Assignment to coders currently uses the following algorithm:
+
+    #. Get a list of all pieces in the sample.
+    #. If "shuffle pieces before assigning" is checked, shuffle the list of pieces
+    #. Make a numbering of "target coders" for this assignment, determine a
+       coder whose "turn" it is.
+    #. For each piece in the list of pieces, do the following:
+
+       #. If "limit to unassigned" is checked, and the piece is assigned to
+          someone, continue to the next piece.
+       #. Find how often this piece has already been assigned as
+          ``n_piece_assignments``.
+       #. Determine number of new assignments *n* for this piece as::
+
+              n = min(
+                  max_assignments_per_piece-n_piece_assignments,
+                  assign_each_piece_n_times))
+
+       #. Do the following *n* times:
+
+          #. Try to assign the piece to the coder whose 'turn' it is.
+          #. If that coder already has this article assigned, go
+             round-robin among coders until someone does not have the article
+             assigned to them.
+          #. If no-one is found, skip this piece.
+          #. Advance the "turn", taking into account ``pieces_per_coder``.
+             If all coders have reached their ``pieces_per_coder`` (in this
+             assignment round), stop.
+    """
     log_lines = []
 
     coder_idx_to_count = {}
@@ -147,62 +210,87 @@ def assign_to_coders_backend(sample, assign_only_unassigned_pieces,
     num_coders = len(coders)
 
     pieces = sample.pieces.all()
-    if pick_pieces_somewhat_randomly:
+    if shuffle_pieces_before_assigning:
         pieces = list(pieces)
         from random import shuffle
         shuffle(pieces)
 
+    quit_flag = False
+
     coder_idx = 0
     for piece in pieces:
-        if (assign_only_unassigned_pieces
-                and CodingAssignment.objects.filter(
-                    sample=sample, piece=piece).count()):
-            log_lines.append("Piece '%d: %s' already assigned to someone, skipping."
-                    % (piece.id, unicode(piece)[:20]))
+        piece_identifier = "'%d: %s'" % (piece.id, unicode(piece)[:20])
+        n_piece_assignments = CodingAssignment.objects.filter(
+                sample=sample, piece=piece).count()
+        if (limit_to_unassigned and n_piece_assignments):
+            log_lines.append("%s already assigned to someone, skipping."
+                    % piece_identifier)
             continue
 
-        local_coder_idx = coder_idx
-        assignment_tries = 0
+        assign_times = max(
+                0,
+                min(
+                    max_assignments_per_piece-n_piece_assignments,
+                    assign_each_piece_n_times))
 
-        # was this piece already assigned to this coder? (if so, try next)
-        # Note that, in its desperation, this may assign a few more items
-        # to a coder than are technically allowed by their limit.
-        while (
-                CodingAssignment.objects.filter(
-                    sample=sample, piece=piece,
-                    coder=coders[local_coder_idx]).count()
-                and assignment_tries < num_coders):
-            local_coder_idx = (local_coder_idx + 1) % num_coders
-            assignment_tries += 1
-
-        if assignment_tries >= num_coders:
-            log_lines.append("Piece '%d: %s' already assigned "
-                    "to all coders, skipping." % (piece.id, unicode(piece)[:20]))
+        if assign_times == 0:
+            log_lines.append("Piece '%s' has reached max assignment count, skipping."
+                    % piece_identifier)
             continue
 
-        assmt = CodingAssignment()
-        assmt.coder = coders[local_coder_idx]
-        assmt.piece = piece
-        assmt.sample = sample
-        assmt.state = assignment_states.not_started
-        assmt.latest_state_time = creation_time
-        assmt.creation_time = creation_time
-        assmt.creator = creator
-        assmt.save()
+        for i_assignment in xrange(assign_times):
 
-        coder_idx_to_count[local_coder_idx] = \
-                coder_idx_to_count.get(local_coder_idx, 0) + 1
+            local_coder_idx = coder_idx
+            assignment_tries = 0
 
-        find_coder_tries = 0
-        while find_coder_tries < num_coders:
-            coder_idx = (coder_idx + 1) % num_coders
-            if coder_idx_to_count.get(coder_idx, 0) < pieces_per_coder:
+            # was this piece already assigned to this coder? (if so, try next)
+            # Note that, in its desperation, this may assign a few more items
+            # to a coder than are technically allowed by their limit.
+            while (
+                    CodingAssignment.objects.filter(
+                        sample=sample, piece=piece,
+                        coder=coders[local_coder_idx]).count()
+                    and assignment_tries < num_coders):
+                local_coder_idx = (local_coder_idx + 1) % num_coders
+                assignment_tries += 1
+
+            if assignment_tries >= num_coders:
+                log_lines.append("Piece '%s' already assigned "
+                        "to all coders, skipping." % piece_identifier)
                 break
-            find_coder_tries += 1
 
-        if find_coder_tries >= num_coders:
-            log_lines.append("All coders have reached their item limit, "
-                    "stopping.")
+            assmt = CodingAssignment()
+            assmt.coder = coders[local_coder_idx]
+            assmt.piece = piece
+            assmt.sample = sample
+            assmt.state = assignment_states.not_started
+            assmt.latest_state_time = creation_time
+            assmt.creation_time = creation_time
+            assmt.creator = creator
+            assmt.save()
+
+            coder_idx_to_count[local_coder_idx] = \
+                    coder_idx_to_count.get(local_coder_idx, 0) + 1
+
+
+            # {{{ advance coder turn
+
+            find_coder_tries = 0
+            while find_coder_tries < num_coders:
+                coder_idx = (coder_idx + 1) % num_coders
+                if coder_idx_to_count.get(coder_idx, 0) < pieces_per_coder:
+                    break
+                find_coder_tries += 1
+
+            if find_coder_tries >= num_coders:
+                log_lines.append("All coders have reached their item limit, "
+                        "stopping.")
+                quit_flag = True
+                break
+
+            # }}}
+
+        if quit_flag:
             break
 
     for coder_idx, coder in enumerate(coders):
@@ -222,11 +310,16 @@ def assign_to_coders(request):
             from datetime import datetime
             log_lines = assign_to_coders_backend(
                     form.cleaned_data["sample"],
-                    form.cleaned_data["assign_only_unassigned_pieces"],
-                    form.cleaned_data["coders"],
-                    form.cleaned_data["pieces_per_coder"],
-                    pick_pieces_somewhat_randomly=
-                    form.cleaned_data["pick_pieces_somewhat_randomly"],
+                    limit_to_unassigned=
+                    form.cleaned_data["limit_to_unassigned"],
+                    shuffle_pieces_before_assigning=
+                    form.cleaned_data["shuffle_pieces_before_assigning"],
+                    assign_each_piece_n_times=
+                    form.cleaned_data["assign_each_piece_n_times"],
+                    max_assignments_per_piece=
+                    form.cleaned_data["max_assignments_per_piece"],
+                    coders=form.cleaned_data["coders"],
+                    pieces_per_coder=form.cleaned_data["pieces_per_coder"],
                     creation_time=datetime.now(),
                     creator=request.user)
 
@@ -243,7 +336,11 @@ def assign_to_coders(request):
     else:
         form = AssignToCodersForm()
 
+    from docutils.core import publish_string
     return render(request, 'generic-form.html', {
+        "doc": publish_string(
+            trim_docstring(assign_to_coders_backend.__doc__),
+            writer_name="html"),
         "form": form,
         "form_description": "Assign work to coders",
     })
