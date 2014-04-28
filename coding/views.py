@@ -125,7 +125,7 @@ class AssignToCodersForm(forms.Form):
     assign_each_piece_n_times = forms.IntegerField(required=True, initial=1)
     max_assignments_per_piece = forms.IntegerField(required=False)
     coders = forms.ModelMultipleChoiceField(User.objects, required=True)
-    pieces_per_coder = forms.IntegerField(required=True,
+    max_pieces_per_coder = forms.IntegerField(required=False,
             help_text="(does not count previously assigned pieces)")
 
     def __init__(self, *args, **kwargs):
@@ -172,7 +172,7 @@ def assign_to_coders_backend(sample,
         shuffle_pieces_before_assigning,
         assign_each_piece_n_times,
         max_assignments_per_piece,
-        coders, pieces_per_coder,
+        coders, max_pieces_per_coder,
         creation_time, creator):
     """Assignment to coders currently uses the following algorithm:
 
@@ -278,13 +278,15 @@ def assign_to_coders_backend(sample,
             coder_idx_to_count[local_coder_idx] = \
                     coder_idx_to_count.get(local_coder_idx, 0) + 1
 
-
             # {{{ advance coder turn
 
             find_coder_tries = 0
             while find_coder_tries < num_coders:
                 coder_idx = (coder_idx + 1) % num_coders
-                if coder_idx_to_count.get(coder_idx, 0) < pieces_per_coder:
+                if (
+                        max_pieces_per_coder is None
+                        or coder_idx_to_count.get(coder_idx, 0)
+                        < max_pieces_per_coder):
                     break
                 find_coder_tries += 1
 
@@ -325,7 +327,7 @@ def assign_to_coders(request):
                     max_assignments_per_piece=
                     form.cleaned_data["max_assignments_per_piece"],
                     coders=form.cleaned_data["coders"],
-                    pieces_per_coder=form.cleaned_data["pieces_per_coder"],
+                    max_pieces_per_coder=form.cleaned_data["max_pieces_per_coder"],
                     creation_time=datetime.now(),
                     creator=request.user)
 
