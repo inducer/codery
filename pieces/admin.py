@@ -1,6 +1,9 @@
 from django.contrib import admin
 
-from pieces.models import Piece, Venue, Study, Keyword, PieceToStudyAssociation
+from pieces.models import (
+        PieceTag,
+        Piece, Venue, Study, Keyword,
+        PieceToStudyAssociation)
 
 
 # {{{ studies
@@ -19,6 +22,9 @@ admin.site.register(Study, StudyAdmin)
 
 
 # {{{ pieces
+
+admin.site.register(PieceTag)
+
 
 class PieceToStudyInline(admin.StackedInline):
     model = PieceToStudyAssociation

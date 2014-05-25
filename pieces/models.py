@@ -88,6 +88,28 @@ class Keyword(models.Model):
             raise RuntimeError("invalid keyword rule")
 
 
+class PieceTag(models.Model):
+    name = models.CharField(max_length=100, unique=True,
+            help_text="Recommended format is lower-case-with-hyphens. "
+            "Do not use spaces.")
+    create_date = models.DateTimeField(default=now)
+
+    def __unicode__(self):
+        return self.name
+
+
+def get_piece_tag(name):
+    tags = PieceTag.objects.filter(name=name)
+    if not tags:
+        tag = PieceTag()
+        tag.name = name
+        tag.save()
+        return tag
+
+    tag, = tags
+    return tag
+
+
 class Piece(models.Model):
     title = models.CharField(max_length=1000, blank=True)
     content = models.TextField(blank=True)
@@ -110,6 +132,8 @@ class Piece(models.Model):
     creator = models.ForeignKey(User)
 
     extra_data_json = models.TextField(null=True, blank=True)
+
+    tags = models.ManyToManyField(PieceTag)
 
     def get_absolute_url(self):
         return "/piece/%d/" % self.id

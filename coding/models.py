@@ -38,6 +38,14 @@ STATE_CHOICES = (
         )
 
 
+class AssignmentTag(models.Model):
+    name = models.CharField(max_length=100, unique=True)
+    create_date = models.DateTimeField(default=now)
+
+    def __unicode__(self):
+        return self.name
+
+
 class CodingAssignment(models.Model):
     coder = models.ForeignKey(User, related_name="coding_assignments")
     piece = models.ForeignKey(Piece)
@@ -55,6 +63,8 @@ class CodingAssignment(models.Model):
 
     creation_time = models.DateTimeField(default=datetime.now)
     creator = models.ForeignKey(User)
+
+    tags = models.ManyToManyField(AssignmentTag)
 
     def get_absolute_url(self):
         return "/coding/assignment/%d/" % self.id

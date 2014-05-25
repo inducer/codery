@@ -1,12 +1,16 @@
 from django.contrib import admin
 
-from coding.models import Sample, CodingAssignment
+from coding.models import (
+        Sample, AssignmentTag, CodingAssignment)
 
 
 class SampleAdmin(admin.ModelAdmin):
     filter_horizontal = ("pieces",)
 
 admin.site.register(Sample, SampleAdmin)
+
+
+admin.site.register(AssignmentTag)
 
 
 class CodingAssignmentAdmin(admin.ModelAdmin):

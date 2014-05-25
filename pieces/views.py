@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from pieces.models import Study, Piece
+from pieces.models import Study, Piece, PieceTag
 
 from django.contrib.auth.decorators import (
         permission_required)
