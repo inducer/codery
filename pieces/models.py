@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime
+from django.utils.timezone import now
 
 
 class Venue(models.Model):
@@ -128,7 +128,7 @@ class Piece(models.Model):
     byline = models.CharField(max_length=1000, null=True, blank=True)
     url = models.URLField(null=True, blank=True)
 
-    create_date = models.DateTimeField(default=datetime.now)
+    create_date = models.DateTimeField(default=now)
     creator = models.ForeignKey(User)
 
     extra_data_json = models.TextField(null=True, blank=True)
@@ -162,7 +162,7 @@ class PieceToStudyAssociation(models.Model):
     study = models.ForeignKey(Study)
     piece = models.ForeignKey(Piece)
 
-    create_date = models.DateTimeField(default=datetime.now)
+    create_date = models.DateTimeField(default=now)
     creator = models.ForeignKey(User)
 
     def __unicode__(self):

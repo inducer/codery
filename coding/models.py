@@ -2,7 +2,7 @@ from django.db import models
 
 from django.contrib.auth.models import User
 from pieces.models import Study, Piece
-from datetime import datetime
+from django.utils.timezone import now
 
 
 class Sample(models.Model):
@@ -11,7 +11,7 @@ class Sample(models.Model):
 
     notes = models.TextField(null=True, blank=True)
 
-    create_date = models.DateTimeField(default=datetime.now)
+    create_date = models.DateTimeField(default=now)
     creator = models.ForeignKey(User)
 
     pieces = models.ManyToManyField(Piece)
@@ -57,11 +57,11 @@ class CodingAssignment(models.Model):
 
     state = models.CharField(max_length=10,
             choices=STATE_CHOICES)
-    latest_state_time = models.DateTimeField(default=datetime.now)
+    latest_state_time = models.DateTimeField(default=now)
 
     latest_coding_form_url = models.URLField(null=True, blank=True)
 
-    creation_time = models.DateTimeField(default=datetime.now)
+    creation_time = models.DateTimeField(default=now)
     creator = models.ForeignKey(User)
 
     tags = models.ManyToManyField(AssignmentTag)

@@ -88,14 +88,14 @@ def create_sample(request):
         if form.is_valid():
             log_lines = []
 
-            from datetime import datetime
+            from django.utils.timezone import now
             create_sample_backend(
                     study=form.cleaned_data["study"],
                     name=form.cleaned_data["name"],
                     sample_size=form.cleaned_data["sample_size"],
                     month=form.cleaned_data["month"],
                     year=form.cleaned_data["year"],
-                    create_date=datetime.now(),
+                    create_date=now,
                     creator=request.user)
 
             return render(request, 'bulk-result.html', {
@@ -315,7 +315,7 @@ def assign_to_coders(request):
         if form.is_valid():
             log_lines = []
 
-            from datetime import datetime
+            from django.utils.timezone import now
             log_lines = assign_to_coders_backend(
                     form.cleaned_data["sample"],
                     limit_to_unassigned=
@@ -328,7 +328,7 @@ def assign_to_coders(request):
                     form.cleaned_data["max_assignments_per_piece"],
                     coders=form.cleaned_data["coders"],
                     max_pieces_per_coder=form.cleaned_data["max_pieces_per_coder"],
-                    creation_time=datetime.now(),
+                    creation_time=now(),
                     creator=request.user)
 
             was_successful = True
@@ -442,8 +442,8 @@ def view_assignment(request, id):
                     form.cleaned_data["state"]
             assignment.notes = \
                     form.cleaned_data["notes"]
-            from datetime import datetime
-            assignment.latest_state_time = datetime.now()
+            from django.utils.timezone import now
+            assignment.latest_state_time = now()
             assignment.save()
     else:
         form = AssignmentUpdateForm({
