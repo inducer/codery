@@ -7,7 +7,8 @@ from django.db import transaction
 C457_PARSE_RE = re.compile("^([-A-Z]+): (.*)$", re.MULTILINE)
 DATE_ISH_PARSE_RE = re.compile(r"^([A-Za-z]+),? ([0-9]+)\, ([0-9]+)", re.MULTILINE)
 
-from pieces.models import Piece, Venue, PieceToStudyAssociation
+from pieces.models import (Piece, Venue,
+        PieceToStudyAssociation, get_piece_tag)
 
 
 def get_venue(log_lines, venue_name, venue_type):
@@ -45,13 +46,14 @@ def parse_date_leniently(text):
 
 
 @transaction.atomic
-def import_ln_html(log_lines, studies, html_file, create_date, creator):
+def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
     from bs4 import BeautifulSoup, Tag
     soup = BeautifulSoup(html_file.read())
 
     total_count = [0]
     import_count = [0]
-    dupe_count = [0]
+
+    dupe_tag = get_piece_tag("duplicate")
 
     # {{{ piece finalization
 
@@ -70,22 +72,24 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
         venue_name = c012s[1].rstrip()
         current_piece.venue = get_venue(log_lines, venue_name, venue_type)
 
+        new_tags = tags[:]
+
+        for piece in Piece.objects.filter(title=current_piece.title):
+            if (piece.content == current_piece.content
+                    and piece.venue == current_piece.venue):
+                new_tags.append(dupe_tag)
+                break
+
         current_piece.create_date = create_date
         current_piece.creator = creator
 
         from json import dumps
         current_piece.extra_data_json = dumps(extra_data)
 
-        for piece in Piece.objects.filter(title=current_piece.title):
-            if (piece.content == current_piece.content
-                    and piece.venue == current_piece.venue):
-                log_lines.append("did not import item %d "
-                        "-- duplicate (marked '%s')..."
-                        % (total_count[0], upload_ordinal))
-                dupe_count[0] += 1
-                return
-
         import_count[0] += 1
+        current_piece.save()
+
+        current_piece.tags = new_tags
         current_piece.save()
 
         if not current_piece.content:
@@ -214,8 +218,8 @@ def import_ln_html(log_lines, studies, html_file, create_date, creator):
     finalize_current_piece()
 
     new_log_lines = [ll.replace("\n", "[newline]") for ll in log_lines]
-    new_log_lines.append("%d items total, %d imported, %d duplicate"
-            % (total_count[0], import_count[0], dupe_count[0]))
+    new_log_lines.append("%d items total, %d imported"
+            % (total_count[0], import_count[0]))
 
     log_lines[:] = new_log_lines
 

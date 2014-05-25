@@ -39,7 +39,9 @@ STATE_CHOICES = (
 
 
 class AssignmentTag(models.Model):
-    name = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True,
+            help_text="Recommended format is lower-case-with-hyphens. "
+            "Do not use spaces.")
     create_date = models.DateTimeField(default=now)
 
     def __unicode__(self):
@@ -64,7 +66,8 @@ class CodingAssignment(models.Model):
     creation_time = models.DateTimeField(default=now)
     creator = models.ForeignKey(User)
 
-    tags = models.ManyToManyField(AssignmentTag)
+    tags = models.ManyToManyField(AssignmentTag,
+            verbose_name="assignment tag")
 
     def get_absolute_url(self):
         return "/coding/assignment/%d/" % self.id

@@ -133,7 +133,7 @@ class Piece(models.Model):
 
     extra_data_json = models.TextField(null=True, blank=True)
 
-    tags = models.ManyToManyField(PieceTag)
+    tags = models.ManyToManyField(PieceTag, verbose_name="piece tag")
 
     def get_absolute_url(self):
         return "/piece/%d/" % self.id
@@ -148,7 +148,12 @@ class Piece(models.Model):
             return "(no title)"
 
     def __unicode__(self):
-        return "%d: %s" % (self.id, self.display_title())
+        if self.id is None:
+            id_str = "(no ID)"
+        else:
+            id_str = str(self.id)
+
+        return "%s: %s" % (id_str, self.display_title())
 
     class Meta:
         ordering = ["-pub_date", "title"]

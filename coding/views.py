@@ -11,8 +11,11 @@ from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
 #import sys
-from pieces.models import Keyword, Study, PieceToStudyAssociation
-from coding.models import Sample, CodingAssignment, assignment_states, STATE_CHOICES
+from pieces.models import PieceTag, Keyword, Study, PieceToStudyAssociation
+from coding.models import (
+        Sample, CodingAssignment, assignment_states, STATE_CHOICES,
+        AssignmentTag)
+
 
 from django.contrib.auth.decorators import (
         login_required,
@@ -26,10 +29,16 @@ from django.db import transaction
 class CreateSampleForm(forms.Form):
     study = forms.ModelChoiceField(
             queryset=Study.objects, required=True)
-    name = forms.CharField(min_length=1)
-    sample_size = forms.IntegerField(required=True)
+    tags = forms.ModelMultipleChoiceField(
+            queryset=PieceTag.objects,
+            required=False,
+            help_text="Select piece tags (if any) which will constrain the "
+            "set of pieces being sampled. Each piece is required to have "
+            "all selected tags.")
     month = forms.IntegerField(required=False)
     year = forms.IntegerField(required=False)
+    name = forms.CharField(min_length=1)
+    sample_size = forms.IntegerField(required=True)
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -41,34 +50,30 @@ class CreateSampleForm(forms.Form):
                 Submit("submit", "Submit", css_class="col-lg-offset-2"))
         super(CreateSampleForm, self).__init__(*args, **kwargs)
 
-    def clean(self):
-        study = self.cleaned_data.get("study")
-        sample_size = self.cleaned_data.get("sample_size")
-
-        if study and sample_size:
-            piece_count = PieceToStudyAssociation.objects \
-                    .filter(study=study).count()
-
-            if sample_size > piece_count:
-                raise forms.ValidationError(
-                        "Cannot sample more pieces than are present in study.")
-
-        return self.cleaned_data
-
 
 @transaction.atomic
-def create_sample_backend(study, name, sample_size, create_date,
-        year, month, creator):
+def create_sample_backend(study, tags, name, sample_size, create_date,
+        year, month, creator, log_lines):
     queryset = PieceToStudyAssociation.objects.filter(study=study)
     if year is not None:
         queryset = queryset.filter(piece__pub_date__year=year)
     if month is not None:
         queryset = queryset.filter(piece__pub_date__month=month)
 
-    pieces = [pts.piece for pts in queryset]
+    tag_id_set = set(tag.id for tag in tags)
+
+    pieces = [pts.piece for pts in queryset.prefetch_related('piece__tags')
+            if tag_id_set <= set(tag.id for tag in pts.piece.tags.all())]
+
+    if sample_size > len(pieces):
+        raise RuntimeError("not enough pieces for sample")
+
+    log_lines.append("%d pieces in urn" % len(pieces))
 
     from random import sample
     selected = sample(pieces, sample_size)
+
+    log_lines.append("%d pieces sampled" % len(selected))
 
     new_sample = Sample()
     new_sample.study = study
@@ -91,12 +96,14 @@ def create_sample(request):
             from django.utils.timezone import now
             create_sample_backend(
                     study=form.cleaned_data["study"],
+                    tags=form.cleaned_data["tags"],
                     name=form.cleaned_data["name"],
                     sample_size=form.cleaned_data["sample_size"],
                     month=form.cleaned_data["month"],
                     year=form.cleaned_data["year"],
-                    create_date=now,
-                    creator=request.user)
+                    create_date=now(),
+                    creator=request.user,
+                    log_lines=log_lines)
 
             return render(request, 'bulk-result.html', {
                 "process_description": "Sample Creation Result",
@@ -391,6 +398,11 @@ def view_assignments(request):
 class AssignmentUpdateForm(forms.Form):
     state = forms.ChoiceField(choices=STATE_CHOICES)
 
+    tags = forms.ModelMultipleChoiceField(
+            queryset=AssignmentTag.objects,
+            required=False,
+            help_text="Select tags (if any) to apply to this "
+            "coding assignment.")
     latest_coding_form_url = forms.URLField(required=False,
             help_text="This field is intended to hold the "
             "'resume filling out this form' link that UIUC FormBuilder "
@@ -440,6 +452,8 @@ def view_assignment(request, id):
                     form.cleaned_data["latest_coding_form_url"]
             assignment.state = \
                     form.cleaned_data["state"]
+            assignment.tags = \
+                    form.cleaned_data["tags"]
             assignment.notes = \
                     form.cleaned_data["notes"]
             from django.utils.timezone import now
@@ -448,6 +462,7 @@ def view_assignment(request, id):
     else:
         form = AssignmentUpdateForm({
             "state": assignment.state,
+            "tags": assignment.tags.all(),
             "latest_coding_form_url": assignment.latest_coding_form_url,
             "notes": assignment.notes,
             })

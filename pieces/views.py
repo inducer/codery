@@ -31,6 +31,11 @@ def show_piece(request, id):
 class ImportLNForm(forms.Form):
     studies = forms.ModelMultipleChoiceField(
             queryset=Study.objects, required=True)
+    tags = forms.ModelMultipleChoiceField(
+            queryset=PieceTag.objects,
+            required=False,
+            help_text="Select piece tags (if any) to apply to newly "
+            "imported pieces.")
     html_file = forms.FileField()
 
     def __init__(self, *args, **kwargs):
@@ -46,20 +51,22 @@ class ImportLNForm(forms.Form):
 
 @permission_required("pieces.bulk_import")
 def import_ln_html(request):
+    from django.utils.timezone import now
+
     if request.method == "POST":
         form = ImportLNForm(request.POST, request.FILES)
         if form.is_valid():
             from pieces.lexis import import_ln_html
 
             was_successful = True
-            from datetime import datetime
             log_lines = []
             try:
                 import_ln_html(
                         log_lines,
-                        form.cleaned_data["studies"],
-                        request.FILES["html_file"],
-                        create_date=datetime.now(),
+                        studies=form.cleaned_data["studies"],
+                        html_file=request.FILES["html_file"],
+                        tags=form.cleaned_data["tags"],
+                        create_date=now(),
                         creator=request.user,
                         )
                 log = "\n".join(log_lines)

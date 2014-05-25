@@ -14,7 +14,7 @@ admin.site.register(AssignmentTag)
 
 
 class CodingAssignmentAdmin(admin.ModelAdmin):
-    list_filter = ("coder", "sample", "state")
+    list_filter = ("coder", "tags", "piece__tags", "sample", "state")
     list_display = (
             "piece",  "coder",
             "sample", "state", "creation_time")

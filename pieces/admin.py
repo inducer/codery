@@ -33,7 +33,7 @@ class PieceToStudyInline(admin.StackedInline):
 
 class PieceAdmin(admin.ModelAdmin):
     list_display = ('id', 'title', 'venue', 'pub_date', 'create_date')
-    list_filter = ('venue',)
+    list_filter = ('tags', 'venue',)
     search_fields = ('title', 'content', 'id')
     date_hierarchy = "pub_date"
 
