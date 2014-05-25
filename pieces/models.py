@@ -114,7 +114,7 @@ class Piece(models.Model):
     def get_absolute_url(self):
         return "/piece/%d/" % self.id
 
-    def __unicode__(self):
+    def display_title(self):
         if self.title:
             if len(self.title) > 30:
                 return self.title[:30]+"..."
@@ -122,6 +122,9 @@ class Piece(models.Model):
                 return self.title
         else:
             return "(no title)"
+
+    def __unicode__(self):
+        return "%d: %s" % (self.id, self.display_title())
 
     class Meta:
         ordering = ["-pub_date", "title"]
