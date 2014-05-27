@@ -45,7 +45,6 @@ class CreateSampleForm(forms.Form):
         self.helper.form_class = "form-horizontal"
         self.helper.label_class = "col-lg-2"
         self.helper.field_class = "col-lg-8"
-
         self.helper.add_input(
                 Submit("submit", "Submit", css_class="col-lg-offset-2"))
         super(CreateSampleForm, self).__init__(*args, **kwargs)
@@ -401,7 +400,8 @@ class AssignmentUpdateForm(forms.Form):
             queryset=AssignmentTag.objects,
             required=False,
             help_text="Select tags (if any) to apply to this "
-            "coding assignment.")
+            "coding assignment.",
+            widget=forms.CheckboxSelectMultiple)
     latest_coding_form_url = forms.URLField(required=False,
             help_text="This field is intended to hold the "
             "'resume filling out this form' link that UIUC FormBuilder "
@@ -409,7 +409,7 @@ class AssignmentUpdateForm(forms.Form):
             "will be available as a clickable link above when you come back.")
     notes = forms.CharField(widget=forms.Textarea, required=False)
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, study, *args, **kwargs):
         self.helper = FormHelper()
         self.helper.form_class = "form-horizontal"
         self.helper.label_class = "col-lg-2"
@@ -417,7 +417,10 @@ class AssignmentUpdateForm(forms.Form):
 
         self.helper.add_input(
                 Submit("submit", "Update", css_class="col-lg-offset-2"))
+
         super(AssignmentUpdateForm, self).__init__(*args, **kwargs)
+
+        self.fields["tags"].queryset = AssignmentTag.objects.filter(study=study)
 
 
 class Highlighter:
@@ -445,7 +448,8 @@ def view_assignment(request, id):
                 "Not your assignment.", content_type="text/plain")
 
     if request.method == "POST":
-        form = AssignmentUpdateForm(request.POST, request.FILES)
+        form = AssignmentUpdateForm(
+                assignment.sample.study, request.POST, request.FILES)
         if form.is_valid():
             assignment.latest_coding_form_url = \
                     form.cleaned_data["latest_coding_form_url"]
@@ -459,12 +463,14 @@ def view_assignment(request, id):
             assignment.latest_state_time = now()
             assignment.save()
     else:
-        form = AssignmentUpdateForm({
-            "state": assignment.state,
-            "tags": assignment.tags.all(),
-            "latest_coding_form_url": assignment.latest_coding_form_url,
-            "notes": assignment.notes,
-            })
+        form = AssignmentUpdateForm(
+                assignment.sample.study,
+                {
+                    "state": assignment.state,
+                    "tags": assignment.tags.all(),
+                    "latest_coding_form_url": assignment.latest_coding_form_url,
+                    "notes": assignment.notes,
+                    })
 
     piece = assignment.piece
     paragraphs = piece.content.split("\n")

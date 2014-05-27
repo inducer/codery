@@ -10,7 +10,11 @@ class SampleAdmin(admin.ModelAdmin):
 admin.site.register(Sample, SampleAdmin)
 
 
-admin.site.register(AssignmentTag)
+class AssignmentTagAdmin(admin.ModelAdmin):
+    list_filter = ("study",)
+    list_display = ("name",  "study",)
+
+admin.site.register(AssignmentTag, AssignmentTagAdmin)
 
 
 class CodingAssignmentAdmin(admin.ModelAdmin):
@@ -20,6 +24,8 @@ class CodingAssignmentAdmin(admin.ModelAdmin):
             "sample", "state", "creation_time")
 
     search_fields = ("piece__id", "piece__title", "sample__name")
+
+    filter_horizontal = ("tags",)
 
 
 admin.site.register(CodingAssignment, CodingAssignmentAdmin)

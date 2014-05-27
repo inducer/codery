@@ -56,7 +56,7 @@ class AssignmentTag(models.Model):
             default=grab_some_study)
 
     def __unicode__(self):
-        return self.name
+        return "%s (%s)" % (self.name, self.study.name)
 
 
 class CodingAssignment(models.Model):
