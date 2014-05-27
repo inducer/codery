@@ -226,12 +226,11 @@ def assign_to_coders_backend(sample,
 
     coder_idx = 0
     for piece in pieces:
-        piece_identifier = "'%d: %s'" % (piece.id, unicode(piece)[:20])
         n_piece_assignments = CodingAssignment.objects.filter(
                 sample=sample, piece=piece).count()
         if (limit_to_unassigned and n_piece_assignments):
             log_lines.append("%s already assigned to someone, skipping."
-                    % piece_identifier)
+                    % unicode(piece))
             continue
 
         assign_times = assign_each_piece_n_times
@@ -248,7 +247,7 @@ def assign_to_coders_backend(sample,
 
         if assign_times == 0:
             log_lines.append("Piece '%s' has reached max assignment count, skipping."
-                    % piece_identifier)
+                    % unicode(piece))
             continue
 
         for i_assignment in xrange(assign_times):
@@ -269,7 +268,7 @@ def assign_to_coders_backend(sample,
 
             if assignment_tries >= num_coders:
                 log_lines.append("Piece '%s' already assigned "
-                        "to all coders, skipping." % piece_identifier)
+                        "to all coders, skipping." % unicode(piece))
                 break
 
             assmt = CodingAssignment()

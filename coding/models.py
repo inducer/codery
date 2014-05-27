@@ -38,11 +38,22 @@ STATE_CHOICES = (
         )
 
 
+def grab_some_study():
+    for s in Study.objects.all():
+        return s.id
+
+    # no study
+    return None
+
+
 class AssignmentTag(models.Model):
     name = models.CharField(max_length=100, unique=True,
             help_text="Recommended format is lower-case-with-hyphens. "
             "Do not use spaces.")
     create_date = models.DateTimeField(default=now)
+    study = models.ForeignKey(
+            Study, null=False,
+            default=grab_some_study)
 
     def __unicode__(self):
         return self.name
