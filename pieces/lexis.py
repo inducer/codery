@@ -8,7 +8,8 @@ C457_PARSE_RE = re.compile("^([-A-Z]+): (.*)$", re.MULTILINE)
 DATE_ISH_PARSE_RE = re.compile(r"^([A-Za-z]+),? ([0-9]+)\, ([0-9]+)", re.MULTILINE)
 
 from pieces.models import (Piece, Venue,
-        PieceToStudyAssociation, get_piece_tag)
+        PieceToStudyAssociation, get_piece_tag,
+        DUPLICATE_PIECE_TAG)
 
 
 def get_venue(log_lines, venue_name, venue_type):
@@ -53,7 +54,7 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
     total_count = [0]
     import_count = [0]
 
-    dupe_tag = get_piece_tag("duplicate")
+    dupe_tag = get_piece_tag(DUPLICATE_PIECE_TAG)
 
     # {{{ piece finalization
 

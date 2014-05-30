@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404
-from pieces.models import Study, Piece, PieceTag
+from pieces.models import Study, Piece, PieceTag, AUTOMATIC_PIECE_TAGS
 
 from django.contrib.auth.decorators import (
         permission_required)
@@ -32,7 +32,9 @@ class ImportLNForm(forms.Form):
     studies = forms.ModelMultipleChoiceField(
             queryset=Study.objects, required=True)
     tags = forms.ModelMultipleChoiceField(
-            queryset=PieceTag.objects,
+            queryset=PieceTag.objects
+            .exclude(name__in=AUTOMATIC_PIECE_TAGS)
+            .order_by("name"),
             required=False,
             help_text="Select piece tags (if any) to apply to newly "
             "imported pieces.")
