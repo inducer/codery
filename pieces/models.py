@@ -91,6 +91,7 @@ class Keyword(models.Model):
 DUPLICATE_PIECE_TAG = "duplicate"
 AUTOMATIC_PIECE_TAGS = [DUPLICATE_PIECE_TAG]
 
+
 class PieceTag(models.Model):
     name = models.CharField(max_length=100, unique=True,
             help_text="Recommended format is lower-case-with-hyphens. "

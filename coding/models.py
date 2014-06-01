@@ -47,7 +47,7 @@ def grab_some_study():
 
 
 class AssignmentTag(models.Model):
-    name = models.CharField(max_length=100, unique=True,
+    name = models.CharField(max_length=100,
             help_text="Recommended format is lower-case-with-hyphens. "
             "Do not use spaces.")
     create_date = models.DateTimeField(default=now)
@@ -57,6 +57,9 @@ class AssignmentTag(models.Model):
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.study.name)
+
+    class Meta:
+        unique_together = (("name", "study"),)
 
 
 class CodingAssignment(models.Model):
