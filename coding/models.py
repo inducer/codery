@@ -60,6 +60,7 @@ class AssignmentTag(models.Model):
 
     class Meta:
         unique_together = (("name", "study"),)
+        ordering = ('study', 'name')
 
 
 class CodingAssignment(models.Model):
