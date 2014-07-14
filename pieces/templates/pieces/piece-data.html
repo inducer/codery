@@ -1,0 +1,50 @@
+<h1>{{piece.title}}</h1>
+
+<hr>
+
+<div class="piece-tags">
+  {% for tag in piece.tags.all %}
+    {% if tag.shown_to_coders %}
+    <span class="label label-default">{{tag.name}}</span>
+    {% endif %}
+  {% endfor %}
+</div>
+
+<p> <b>Piece ID:</b> {{piece.id}} </p>
+<p> <b>Venue:</b> {{piece.venue}} (Venue ID: {{piece.venue.id}}) </p>
+<p> <b>Publication Date:</b> {{piece.pub_date}} (Original: {{piece.pub_date_unparsed}}) </p>
+{% if piece.load_date %}
+  <p> <b>Load Date:</b> {{piece.load_date}} </p>
+{% endif %}
+{% if piece.url %}
+  <p> <b>URL:</b> {{piece.url}} </p>
+{% endif %}
+{% if piece.byline %}
+  <p> <b>Byline:</b> {{piece.byline}} </p>
+{% endif %}
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <h4 class="panel-title">
+      <a data-toggle="collapse" href="#collapseOne">
+        Extended metadata
+        <span style="font-size:x-small">(click to view)</span>
+      </a>
+    </h4>
+  </div>
+  <div id="collapseOne" class="panel-collapse collapse">
+    <div class="panel-body">
+      <table >
+        {% for key, value in extra_data %}
+        <tr class="codery-extra-metadata">
+          <td><b>{{key}}</b></td>
+          <td>{{value}}</td>
+        </tr>
+        {% endfor %}
+      </table>
+    </div>
+  </div>
+</div>
+<hr>
+
+{{content|safe}}

@@ -6,6 +6,7 @@ import django.forms as forms
 from django.http import HttpResponseForbidden
 
 from django.contrib.auth.models import User
+from django.contrib import messages
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -462,6 +463,9 @@ def view_assignment(request, id):
             from django.utils.timezone import now
             assignment.latest_state_time = now()
             assignment.save()
+
+        messages.add_message(request, messages.INFO,
+                "Changes saved.")
     else:
         form = AssignmentUpdateForm(
                 assignment.sample.study,
@@ -481,9 +485,16 @@ def view_assignment(request, id):
             "<p>%s</p>" % highlighter(paragraph)
             for paragraph in paragraphs)
 
+    from json import loads
+    extra_data = loads(assignment.piece.extra_data_json)
+    assert isinstance(extra_data, dict)
+
+    extra_data = sorted(extra_data.iteritems())
+
     return render(request, 'coding/assignment.html', {
         "assignment": assignment,
         "piece": assignment.piece,
+        "extra_data": extra_data,
         "content": content,
         "form": form,
     })

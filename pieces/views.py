@@ -19,10 +19,17 @@ def show_piece(request, id):
     content = "\n".join(
             "<p>%s</p>" % paragraph
             for paragraph in paragraphs)
+
+    from json import loads
+    extra_data = loads(piece.extra_data_json)
+    assert isinstance(extra_data, dict)
+
+    extra_data = sorted(extra_data.iteritems())
+
     return render(request, 'pieces/piece.html', {
         "piece": piece,
+        "extra_data": extra_data,
         "content": content,
-
         })
 
 

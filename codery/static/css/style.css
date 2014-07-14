@@ -2,3 +2,13 @@ body {
   min-height: 2000px;
   padding-top: 70px;
 }
+
+tr.codery-extra-metadata td {
+  padding-right:5px;
+}
+
+.piece-tags {
+  float: right;
+  padding-left:2em;
+  padding-bottom:1ex;
+}

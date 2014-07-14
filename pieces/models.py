@@ -97,6 +97,7 @@ class PieceTag(models.Model):
             help_text="Recommended format is lower-case-with-hyphens. "
             "Do not use spaces.")
     create_date = models.DateTimeField(default=now)
+    shown_to_coders = models.BooleanField(default=False)
 
     def __unicode__(self):
         return self.name
