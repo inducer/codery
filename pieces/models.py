@@ -5,10 +5,12 @@ from django.utils.timezone import now
 
 class Venue(models.Model):
     name = models.CharField(max_length=200)
-    publication_type = models.CharField(max_length=200, null=True)
 
     def __unicode__(self):
         return self.name
+
+    class Meta:
+        ordering = ["name"]
 
 
 class Study(models.Model):
@@ -118,6 +120,8 @@ def get_piece_tag(name):
 class Piece(models.Model):
     title = models.CharField(max_length=1000, blank=True)
     content = models.TextField(blank=True)
+
+    publication_type = models.CharField(max_length=200, null=True)
 
     notes = models.TextField(null=True, blank=True)
 

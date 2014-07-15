@@ -13,6 +13,13 @@
 <p> <b>Piece ID:</b> {{piece.id}} </p>
 <p> <b>Venue:</b> {{piece.venue}} (Venue ID: {{piece.venue.id}}) </p>
 <p> <b>Publication Date:</b> {{piece.pub_date}} (Original: {{piece.pub_date_unparsed}}) </p>
+<p> <b>Publication Type:</b>
+  {% if piece.publication_type %}
+  {{ piece.publication_type }}
+  {% else %}
+  (not known)
+  {% endif %}
+</p>
 {% if piece.load_date %}
   <p> <b>Load Date:</b> {{piece.load_date}} </p>
 {% endif %}

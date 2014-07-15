@@ -12,21 +12,17 @@ from pieces.models import (Piece, Venue,
         DUPLICATE_PIECE_TAG)
 
 
-def get_venue(log_lines, venue_name, venue_type):
+def get_venue(log_lines, venue_name):
+    venue_name = venue_name.strip()
+
     venues = Venue.objects.filter(name=venue_name)
     if not venues:
         venue = Venue()
         venue.name = venue_name
-        venue.publication_type = venue_type
         venue.save()
         return venue
 
     venue, = venues
-    if venue.publication_type != venue_type:
-        log_lines.append(
-                "WARNING: Venue '%s' switched types from '%s' (in database) "
-                "to '%s' (in imported piece)"
-                % (venue.name, venue.publication_type, venue_type))
 
     return venue
 
@@ -71,7 +67,7 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
         upload_ordinal = extra_data["CODERY_LN_UPLOAD_ORDINAL"] = c012s[0].rstrip()
 
         venue_name = c012s[1].rstrip()
-        current_piece.venue = get_venue(log_lines, venue_name, venue_type)
+        current_piece.venue = get_venue(log_lines, venue_name)
 
         new_tags = tags[:]
 
@@ -119,7 +115,6 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
     # }}}
 
     current_piece = None
-    venue_type = None
     c012s = []
     extra_data = {}
 
@@ -136,7 +131,6 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
             current_piece.content = ""
 
             c012s = []
-            venue_type = None
             extra_data = {}
 
         if child.name == "br":
@@ -184,7 +178,7 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
                     current_piece.source_load_date = \
                             parse_date_leniently(value)
                 elif field == "PUBLICATION-TYPE":
-                    venue_type = value
+                    current_piece.publication_type = value
                 elif field == "URL":
                     current_piece.url = value
                 else:
