@@ -120,6 +120,6 @@ class CodingAssignmentActivity(models.Model):
 
     class Meta:
         verbose_name_plural = "coding assignment activities"
-        ordering = ("action_time",)
+        ordering = ("-action_time",)
 
 # }}}
