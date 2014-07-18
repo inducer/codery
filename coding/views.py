@@ -15,7 +15,8 @@ from crispy_forms.layout import Submit
 from pieces.models import PieceTag, Keyword, Study, PieceToStudyAssociation
 from coding.models import (
         Sample, CodingAssignment, assignment_states, STATE_CHOICES,
-        AssignmentTag)
+        AssignmentTag,
+        CodingAssignmentActivity, assignment_actions)
 
 
 from django.contrib.auth.decorators import (
@@ -464,9 +465,23 @@ def view_assignment(request, id):
             assignment.latest_state_time = now()
             assignment.save()
 
+        activity = CodingAssignmentActivity()
+        activity.assignment = assignment
+        activity.actor = request.user
+        activity.action = assignment_actions.modify
+        activity.state = assignment.state
+        activity.save()
+
         messages.add_message(request, messages.INFO,
                 "Changes saved.")
     else:
+        activity = CodingAssignmentActivity()
+        activity.assignment = assignment
+        activity.actor = request.user
+        activity.action = assignment_actions.view
+        activity.state = assignment.state
+        activity.save()
+
         form = AssignmentUpdateForm(
                 assignment.sample.study,
                 {

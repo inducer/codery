@@ -1,7 +1,7 @@
 from django.contrib import admin
 
 from coding.models import (
-        Sample, AssignmentTag, CodingAssignment)
+        Sample, AssignmentTag, CodingAssignment, CodingAssignmentActivity)
 
 
 class SampleAdmin(admin.ModelAdmin):
@@ -27,5 +27,17 @@ class CodingAssignmentAdmin(admin.ModelAdmin):
 
     filter_horizontal = ("tags",)
 
-
 admin.site.register(CodingAssignment, CodingAssignmentAdmin)
+
+
+class CodingAssignmentActivityAdmin(admin.ModelAdmin):
+    search_fields = (
+            "assignment__piece__id",
+            "assignment__piece__title",
+            "actor__name",
+            )
+
+    list_display = ("assignment", "action_time", "actor", "action", "state")
+    list_filter = ("actor", "action", "state")
+
+admin.site.register(CodingAssignmentActivity, CodingAssignmentActivityAdmin)

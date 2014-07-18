@@ -94,3 +94,32 @@ class CodingAssignment(models.Model):
         permissions = (
                 ("assign_to_coders", "Can assign work to coders"),
                 )
+
+
+# {{{ assignment activity tracking
+
+class assignment_actions:
+    view = "view"
+    modify = "modify"
+
+ACTION_CHOICES = (
+        (assignment_actions.view, "View"),
+        (assignment_actions.modify, "Modify"),
+        )
+
+
+class CodingAssignmentActivity(models.Model):
+    assignment = models.ForeignKey(CodingAssignment, related_name="activities")
+
+    action_time = models.DateTimeField(default=now, db_index=True)
+    actor = models.ForeignKey(User, db_index=True)
+
+    action = models.CharField(max_length=10, choices=ACTION_CHOICES)
+    state = models.CharField(max_length=10,
+            choices=STATE_CHOICES)
+
+    class Meta:
+        verbose_name_plural = "coding assignment activities"
+        ordering = ("action_time",)
+
+# }}}
