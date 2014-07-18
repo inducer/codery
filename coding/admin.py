@@ -40,4 +40,6 @@ class CodingAssignmentActivityAdmin(admin.ModelAdmin):
     list_display = ("assignment", "action_time", "actor", "action", "state")
     list_filter = ("actor", "action", "state")
 
+    date_hierarchy = "action_time"
+
 admin.site.register(CodingAssignmentActivity, CodingAssignmentActivityAdmin)
