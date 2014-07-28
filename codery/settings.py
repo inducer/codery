@@ -43,9 +43,16 @@ INSTALLED_APPS = (
     'pieces',
     'coding',
     'crispy_forms',
+    'django_jinja',
 )
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"
+
+TEMPLATE_LOADERS = (
+        'django_jinja.loaders.AppLoader',
+        'django_jinja.loaders.FileSystemLoader',
+        )
+
 
 LOGIN_REDIRECT_URL = "/"
 

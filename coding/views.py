@@ -371,10 +371,9 @@ def view_assignments_backend(request, tag_id=None):
     else:
         tag = None
 
+    base_queryset = CodingAssignment.objects
     if tag is not None:
-        base_queryset = tag.assignments
-    else:
-        base_queryset = CodingAssignment.objects
+        base_queryset = base_queryset.filter(tags=tag)
 
     started = (
             base_queryset
@@ -396,6 +395,7 @@ def view_assignments_backend(request, tag_id=None):
         "started": started,
         "not_started": not_started,
         "finished": finished,
+        "user": request.user,
         "tag": tag,
         "nothing_here": not (started or not_started or finished),
     })
@@ -408,7 +408,7 @@ def view_assignments(request):
 
 @login_required
 def list_assignment_tags(request):
-    return render(request, 'coding/assignment-tag-list.html', {
+    return render(request, 'coding/assignment-tag-list.jinja', {
         "studies": Study.objects.order_by("name"),
     })
 
