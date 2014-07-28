@@ -5,12 +5,11 @@
 {% block content %}
   {% for study in studies %}
     <h2>{{study.name}}</h2>
-    <ul>
+    <ul class="assignment-tag-list">
       {% for tag in study.assignment_tags.all %}
       <li>
-        <a href="{% url "coding.views.view_assignments_by_tag" tag.pk %}">
-        <span class="label label-default">{{tag.name}}</span>
-        </a>
+        <a href="{% url "coding.views.view_assignments_by_tag" tag.pk %}"><span class="label label-default">{{tag.name}}</span></a>
+        ({{ tag.assignments.count }} coding assignments)
       </li>
       {% endfor %}
     </ul>

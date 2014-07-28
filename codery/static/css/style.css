@@ -12,3 +12,7 @@ tr.codery-extra-metadata td {
   padding-left:2em;
   padding-bottom:1ex;
 }
+
+.assignment-tag-list li {
+  margin-bottom: .5ex;
+}
