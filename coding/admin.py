@@ -27,6 +27,8 @@ class CodingAssignmentAdmin(admin.ModelAdmin):
 
     filter_horizontal = ("tags",)
 
+    raw_id_fields = ("piece",)
+
 admin.site.register(CodingAssignment, CodingAssignmentAdmin)
 
 
@@ -41,5 +43,7 @@ class CodingAssignmentActivityAdmin(admin.ModelAdmin):
     list_filter = ("actor", "action", "state")
 
     date_hierarchy = "action_time"
+
+    raw_id_fields = ("assignment",)
 
 admin.site.register(CodingAssignmentActivity, CodingAssignmentActivityAdmin)
