@@ -53,7 +53,8 @@ class AssignmentTag(models.Model):
     create_date = models.DateTimeField(default=now)
     study = models.ForeignKey(
             Study, null=False,
-            default=grab_some_study)
+            default=grab_some_study,
+            related_name="assignment_tags")
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.study.name)

@@ -1,4 +1,4 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
 import re
 import sys
 
@@ -365,20 +365,28 @@ def assign_to_coders(request):
 
 # {{{ view assignments
 
-@login_required
-def view_assignments(request):
+def view_assignments_backend(request, tag_id=None):
+    if tag_id is not None:
+        tag = get_object_or_404(AssignmentTag, pk=tag_id)
+    else:
+        tag = None
+
+    base_queryset = CodingAssignment.objects
+    if tag is not None:
+        base_queryset = base_queryset.filter(tags__id=tag.id)
+
     started = (
-            CodingAssignment.objects
+            base_queryset
             .filter(state=assignment_states.started, coder=request.user)
             .order_by('sample', 'piece__title')
             )
     not_started = (
-            CodingAssignment.objects
+            base_queryset
             .filter(state=assignment_states.not_started, coder=request.user)
             .order_by('sample', 'piece__title')
             )
     finished = (
-            CodingAssignment.objects
+            base_queryset
             .filter(state=assignment_states.finished, coder=request.user)
             .order_by('sample', 'piece__title')
             )
@@ -387,8 +395,26 @@ def view_assignments(request):
         "started": started,
         "not_started": not_started,
         "finished": finished,
+        "tag": tag,
         "nothing_here": not (started or not_started or finished),
     })
+
+
+@login_required
+def view_assignments(request):
+    return view_assignments_backend(request)
+
+
+@login_required
+def list_assignment_tags(request):
+    return render(request, 'coding/assignment-tag-list.html', {
+        "studies": Study.objects.order_by("name"),
+    })
+
+
+@login_required
+def view_assignments_by_tag(request, tag_id):
+    return view_assignments_backend(request, tag_id)
 
 # }}}
 
@@ -445,9 +471,10 @@ class Highlighter:
 def view_assignment(request, id):
     assignment = CodingAssignment.objects.get(id=id)
 
-    if assignment.coder != request.user:
-        return HttpResponseForbidden(
-                "Not your assignment.", content_type="text/plain")
+    if not request.user.is_staff:
+        if assignment.coder != request.user:
+            return HttpResponseForbidden(
+                    "Not your assignment.", content_type="text/plain")
 
     if request.method == "POST":
         form = AssignmentUpdateForm(
@@ -515,5 +542,6 @@ def view_assignment(request, id):
     })
 
 # }}}
+
 
 # vim: foldmethod=marker

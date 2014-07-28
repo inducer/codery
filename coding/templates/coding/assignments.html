@@ -3,6 +3,14 @@
 {% block title %}My assignments - Codery{% endblock %}
 
 {% block content %}
+  {% if tag %}
+  <div class="alert alert-info">
+    Assignment list limited to the
+    <span class="label label-default">{{tag.name}}</span>
+    assignment tag in the study "{{tag.study.name}}".
+  </div>
+
+  {% endif %}
   {% if started %}
     <h2>Started assignments</h2>
     <ul>
