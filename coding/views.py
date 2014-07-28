@@ -371,9 +371,10 @@ def view_assignments_backend(request, tag_id=None):
     else:
         tag = None
 
-    base_queryset = CodingAssignment.objects
     if tag is not None:
-        base_queryset = base_queryset.filter(tags__id=tag.id)
+        base_queryset = tag.assignments
+    else:
+        base_queryset = CodingAssignment.objects
 
     started = (
             base_queryset
