@@ -138,77 +138,80 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
 
         if child.name == "div":
             div_class, = child["class"]
-            p = child.p
-            if p is None:
-                continue
-            p_class, = p["class"]
-            span = p.span
-            if span is None:
-                continue
-
-            span_class, = span["class"]
-            text = child.get_text()
-            loggable_text = text.rstrip()[:20].encode("ascii", errors="replace")
-
-            key = "".join([div_class, p_class, span_class])
-
-            if key == "c0c1c2":
-                c012s.append(text.rstrip())
-            elif key in ["c4c5c6", "c5c6c7"]:
-                current_piece.title = text.rstrip()
-            elif (
-                    key.startswith("c5c6")
-                    or key in ["c4c5c7", "c5c6c8", "c5c6c2"]
-                    ):
-                match = C457_PARSE_RE.match(text)
-                if match is None:
-                    log_lines.append(
-                            "WARNING: %s did not match expected format: "
-                            "'%s' (%d characters total)"
-                            % (key, loggable_text, len(text)))
-
+            for potential_p in child.children:
+                if potential_p.name != "p":
                     continue
 
-                field = match.group(1)
-                value = match.group(2).rstrip()
+                p = potential_p
 
-                if field == "BYLINE":
-                    current_piece.byline = value
-                elif field == "LOAD-DATE":
-                    current_piece.source_load_date = \
-                            parse_date_leniently(value)
-                elif field == "PUBLICATION-TYPE":
-                    current_piece.publication_type = value
-                elif field == "URL":
-                    current_piece.url = value
-                else:
-                    extra_data[field] = value
+                p_class, = p["class"]
+                span = p.span
+                if span is None:
+                    continue
 
-            elif key in ["c3c1c2", "c3c1c4"]:
-                parsed_date = parse_date_leniently(text)
+                span_class, = span["class"]
+                text = child.get_text()
+                loggable_text = text.rstrip()[:20].encode("ascii", errors="replace")
 
-                if parsed_date is None:
-                    log_lines.append(
-                            "WARNING: %s did not match expected "
-                            "date-ish format: '%s', treating as c012"
-                            % (key, loggable_text))
+                key = "".join([div_class, p_class, span_class])
+
+                if key == "c0c1c2":
                     c012s.append(text.rstrip())
+                elif key in ["c4c5c6", "c5c6c7"]:
+                    current_piece.title = text.rstrip()
+                elif (
+                        key.startswith("c5c6")
+                        or key in ["c4c5c7", "c5c6c8", "c5c6c2"]
+                        ):
+                    match = C457_PARSE_RE.match(text)
+                    if match is None:
+                        log_lines.append(
+                                "WARNING: %s did not match expected format: "
+                                "'%s' (%d characters total)"
+                                % (key, loggable_text, len(text)))
+
+                        continue
+
+                    field = match.group(1)
+                    value = match.group(2).rstrip()
+
+                    if field == "BYLINE":
+                        current_piece.byline = value
+                    elif field == "LOAD-DATE":
+                        current_piece.source_load_date = \
+                                parse_date_leniently(value)
+                    elif field == "PUBLICATION-TYPE":
+                        current_piece.publication_type = value
+                    elif field == "URL":
+                        current_piece.url = value
+                    else:
+                        extra_data[field] = value
+
+                elif key in ["c3c1c2", "c3c1c4"]:
+                    parsed_date = parse_date_leniently(text)
+
+                    if parsed_date is None:
+                        log_lines.append(
+                                "WARNING: %s did not match expected "
+                                "date-ish format: '%s', treating as c012"
+                                % (key, loggable_text))
+                        c012s.append(text.rstrip())
+                    else:
+                        current_piece.pub_date_unparsed = text.rstrip()
+                        current_piece.pub_date = parsed_date
+
+                elif key.startswith("c4c8") or key.startswith("c5c9") or key in [
+                        "c4c5c2",
+                        ]:
+                    # body text
+
+                    current_piece.content += text
+                elif key in ["c5c6c15", "c4c5c13"]:
+                    # header text
+                    pass
                 else:
-                    current_piece.pub_date_unparsed = text.rstrip()
-                    current_piece.pub_date = parsed_date
-
-            elif key.startswith("c4c8") or key.startswith("c5c9") or key in [
-                    "c4c5c2",
-                    ]:
-                # body text
-
-                current_piece.content += text
-            elif key in ["c5c6c15", "c4c5c13"]:
-                # header text
-                pass
-            else:
-                #print text
-                raise RuntimeError("unknown doc key: %s" % key)
+                    # print text
+                    raise RuntimeError("unknown doc key: %s" % key)
 
     finalize_current_piece()
 
