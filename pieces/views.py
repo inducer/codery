@@ -48,14 +48,14 @@ class ImportLNForm(forms.Form):
     html_file = forms.FileField()
     repair_content = forms.BooleanField(required=False,
             help_text="Check this box if a previous import of the same HTML "
-            "went wrong. (perhaps due to an import issue in Codery) "
-            "For each piece to be imported, codery will find exactly one "
-            "piece that matches the metadata "
-            "of the newly imported piece and replace that piece's content with "
+            "went wrong (perhaps due to an import issue in Codery). "
+            "For each piece to be imported, Codery will find all "
+            "existing pieces that match the metadata "
+            "of the newly imported piece and replace their content with "
             "the one from the new import. The old piece's metadata stays untouched, "
             "and its ID as well as its association with studies and samples stays "
-            "the same. If no or more than one matching piece are found, an error "
-            "is reported and no changes are made.")
+            "the same. If this box is checked, the 'tags' and 'studies' boxes above "
+            "are not considered at all.")
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()

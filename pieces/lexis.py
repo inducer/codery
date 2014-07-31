@@ -73,7 +73,7 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
         if repair_content:
             log_lines.append("Repairing: item %d (marked '%s'), titled '%s'..."
                     % (total_count[0], upload_ordinal, current_piece.title))
-            piece_to_repair = Piece.objects.get(
+            pieces_to_repair = Piece.objects.filter(
                     title=current_piece.title,
                     venue=current_piece.venue,
                     publication_type=current_piece.publication_type,
@@ -81,12 +81,22 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
                     byline=current_piece.byline,
                     source_load_date=current_piece.source_load_date)
 
-            log_lines.append(
-                    "  Previous content length: "
-                    "%d characters, new: %d characters"
-                    % (len(piece_to_repair.content), len(current_piece.content)))
-            piece_to_repair.content = current_piece.content
-            piece_to_repair.save()
+            repair_count = 0
+            for piece_to_repair in pieces_to_repair:
+                log_lines.append(
+                        "  Repairing ID %d, previous content length: "
+                        "%d characters, new: %d characters"
+                        % (piece_to_repair.id, len(piece_to_repair.content),
+                            len(current_piece.content)))
+                piece_to_repair.content = current_piece.content
+                piece_to_repair.save()
+                repair_count += 1
+
+            if repair_count:
+                log_lines.append("  Repaired %d pieces" % repair_count)
+            else:
+                log_lines.append("  WARNING! No pieces repaired.")
+
             return
 
         new_tags = tags[:]
