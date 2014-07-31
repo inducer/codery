@@ -1,11 +1,9 @@
-from django.shortcuts import render
-
 from django.contrib.auth.forms import \
         AuthenticationForm as AuthenticationFormBase
 
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Submit, Layout
-from crispy_forms.bootstrap import StrictButton
+from crispy_forms.layout import Submit
+
 
 class AuthenticationForm(AuthenticationFormBase):
     def __init__(self, *args, **kwargs):
@@ -19,8 +17,10 @@ class AuthenticationForm(AuthenticationFormBase):
         #         'password',
         #         )
 
-        self.helper.add_input(Submit("submit", "Sign in", css_class="col-lg-offset-2"))
+        self.helper.add_input(
+                Submit("submit", "Sign in", css_class="col-lg-offset-2"))
         super(AuthenticationForm, self).__init__(*args, **kwargs)
+
 
 def login(request):
     from django.contrib.auth.views import login

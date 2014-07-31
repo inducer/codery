@@ -88,10 +88,11 @@ def import_ln_html(request):
             return render(request, 'bulk-result.html', {
                 "process_description": "Import Result",
                 "log": log,
-                "status": "Import successful."
+                "status": (
+                    "Import successful."
                     if was_successful
                     else "Import failed. See above for error. "
-                    "No changes have been made to the database.",
+                    "No changes have been made to the database."),
                 "was_successful": was_successful,
                 })
     else:

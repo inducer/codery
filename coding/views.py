@@ -11,7 +11,6 @@ from django.contrib import messages
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
-#import sys
 from pieces.models import PieceTag, Keyword, Study, PieceToStudyAssociation
 from coding.models import (
         Sample, CodingAssignment, assignment_states, STATE_CHOICES,
@@ -322,19 +321,17 @@ def assign_to_coders(request):
         if form.is_valid():
             log_lines = []
 
+            cld = form.cleaned_data
             from django.utils.timezone import now
             log_lines = assign_to_coders_backend(
-                    form.cleaned_data["sample"],
-                    limit_to_unassigned=
-                    form.cleaned_data["limit_to_unassigned"],
-                    shuffle_pieces_before_assigning=
-                    form.cleaned_data["shuffle_pieces_before_assigning"],
-                    assign_each_piece_n_times=
-                    form.cleaned_data["assign_each_piece_n_times"],
-                    max_assignments_per_piece=
-                    form.cleaned_data["max_assignments_per_piece"],
-                    coders=form.cleaned_data["coders"],
-                    max_pieces_per_coder=form.cleaned_data["max_pieces_per_coder"],
+                    cld["sample"],
+                    limit_to_unassigned=cld["limit_to_unassigned"],
+                    shuffle_pieces_before_assigning=cld[
+                        "shuffle_pieces_before_assigning"],
+                    assign_each_piece_n_times=cld["assign_each_piece_n_times"],
+                    max_assignments_per_piece=cld["max_assignments_per_piece"],
+                    coders=cld["coders"],
+                    max_pieces_per_coder=cld["max_pieces_per_coder"],
                     creation_time=now(),
                     creator=request.user)
 
@@ -342,10 +339,11 @@ def assign_to_coders(request):
             return render(request, 'bulk-result.html', {
                 "process_description": "Coding Assignment Creation Result",
                 "log": "\n".join(log_lines),
-                "status": "Coding assignments created"
+                "status": (
+                    "Coding assignments created"
                     if was_successful
                     else "Coding assignment creation failed. "
-                    "No changes made to database.",
+                    "No changes made to database."),
                 "was_successful": was_successful,
                 })
     else:
