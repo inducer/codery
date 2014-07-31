@@ -46,6 +46,16 @@ class ImportLNForm(forms.Form):
             help_text="Select piece tags (if any) to apply to newly "
             "imported pieces.")
     html_file = forms.FileField()
+    repair_content = forms.BooleanField(required=False,
+            help_text="Check this box if a previous import of the same HTML "
+            "went wrong. (perhaps due to an import issue in Codery) "
+            "For each piece to be imported, codery will find exactly one "
+            "piece that matches the metadata "
+            "of the newly imported piece and replace that piece's content with "
+            "the one from the new import. The old piece's metadata stays untouched, "
+            "and its ID as well as its association with studies and samples stays "
+            "the same. If no or more than one matching piece are found, an error "
+            "is reported and no changes are made.")
 
     def __init__(self, *args, **kwargs):
         self.helper = FormHelper()
@@ -70,11 +80,13 @@ def import_ln_html(request):
             was_successful = True
             log_lines = []
             try:
+                data = form.cleaned_data
                 import_ln_html(
                         log_lines,
-                        studies=form.cleaned_data["studies"],
+                        studies=data["studies"],
                         html_file=request.FILES["html_file"],
-                        tags=form.cleaned_data["tags"],
+                        tags=data["tags"],
+                        repair_content=data["repair_content"],
                         create_date=now(),
                         creator=request.user,
                         )

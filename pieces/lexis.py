@@ -43,7 +43,8 @@ def parse_date_leniently(text):
 
 
 @transaction.atomic
-def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
+def import_ln_html(log_lines, studies, html_file, tags, repair_content,
+        create_date, creator):
     from bs4 import BeautifulSoup, Tag
     soup = BeautifulSoup(html_file.read())
 
@@ -68,6 +69,25 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
 
         venue_name = c012s[1].rstrip()
         current_piece.venue = get_venue(log_lines, venue_name)
+
+        if repair_content:
+            log_lines.append("Repairing: item %d (marked '%s'), titled '%s'..."
+                    % (total_count[0], upload_ordinal, current_piece.title))
+            piece_to_repair = Piece.objects.get(
+                    title=current_piece.title,
+                    venue=current_piece.venue,
+                    publication_type=current_piece.publication_type,
+                    pub_date_unparsed=current_piece.pub_date_unparsed,
+                    byline=current_piece.byline,
+                    source_load_date=current_piece.source_load_date)
+
+            log_lines.append(
+                    "  Previous content length: "
+                    "%d characters, new: %d characters"
+                    % (len(piece_to_repair.content), len(current_piece.content)))
+            piece_to_repair.content = current_piece.content
+            piece_to_repair.save()
+            return
 
         new_tags = tags[:]
 
@@ -138,10 +158,10 @@ def import_ln_html(log_lines, studies, html_file, tags, create_date, creator):
 
         if child.name == "div":
             div_class, = child["class"]
+
             for potential_p in child.children:
                 if potential_p.name != "p":
                     continue
-
                 p = potential_p
 
                 p_class, = p["class"]
