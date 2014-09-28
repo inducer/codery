@@ -36,7 +36,7 @@ class PieceToStudyInline(admin.StackedInline):
 
 class PieceAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "venue", "pub_date", "create_date")
-    list_filter = ("tags", "studies", "publication_type", "venue", "samples")
+    list_filter = ("tags", "studies", "publication_type", "samples", "venue")
     list_display_links = ("id", "title")
 
     search_fields = ('title', 'content', 'id')
