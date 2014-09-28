@@ -173,11 +173,6 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
                 if potential_p.name != "p":
                     continue
                 p = potential_p
-            # for xxx in [1]:
-
-            #     p = child.p
-            #     if p is None:
-            #         continue
 
                 p_class, = p["class"]
                 span = p.span
