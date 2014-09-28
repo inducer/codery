@@ -57,7 +57,7 @@ class VenueAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
     list_display_links = ("id", "name")
 
-    search_fields = ("title", "id")
+    search_fields = ("name", "id")
 
 admin.site.register(Venue, VenueAdmin)
 
