@@ -44,6 +44,7 @@ INSTALLED_APPS = (
     'coding',
     'crispy_forms',
     'django_jinja',
+    'admin_exporter',
 )
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"

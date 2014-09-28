@@ -5,6 +5,9 @@ from pieces.models import (
         Piece, Venue, Study, Keyword,
         PieceToStudyAssociation)
 
+from admin_exporter.actions import export_as_csv_action
+admin.site.add_action(export_as_csv_action)
+
 
 # {{{ studies
 
@@ -33,7 +36,7 @@ class PieceToStudyInline(admin.StackedInline):
 
 class PieceAdmin(admin.ModelAdmin):
     list_display = ("id", "title", "venue", "pub_date", "create_date")
-    list_filter = ("tags", "studies", "publication_type", "venue",)
+    list_filter = ("tags", "studies", "publication_type", "venue", "samples")
     list_display_links = ("id", "title")
 
     search_fields = ('title', 'content', 'id')
@@ -57,3 +60,5 @@ class VenueAdmin(admin.ModelAdmin):
     search_fields = ("title", "id")
 
 admin.site.register(Venue, VenueAdmin)
+
+# vim: foldmethod=marker

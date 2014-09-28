@@ -3,6 +3,9 @@ from django.contrib import admin
 from coding.models import (
         Sample, AssignmentTag, CodingAssignment, CodingAssignmentActivity)
 
+from admin_exporter.actions import export_as_csv_action
+admin.site.add_action(export_as_csv_action)
+
 
 class SampleAdmin(admin.ModelAdmin):
     filter_horizontal = ("pieces",)

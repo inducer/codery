@@ -1,5 +1,5 @@
 # Django>=1.7 once released
-https://www.djangoproject.com/download/1.7c1/tarball/
+Django>=1.7
 
 BeautifulSoup4
 django-crispy-forms>=1.4.0
@@ -7,3 +7,5 @@ docutils>=0.11
 pytz
 
 django-jinja
+
+git+https://github.com/RyanBalfanz/django-admin-exporter.git

@@ -14,7 +14,7 @@ class Sample(models.Model):
     create_date = models.DateTimeField(default=now)
     creator = models.ForeignKey(User)
 
-    pieces = models.ManyToManyField(Piece)
+    pieces = models.ManyToManyField(Piece, related_name="samples")
 
     def __unicode__(self):
         return u"%s (%d pieces, %s)" % (self.name, self.pieces.count(), self.study)
