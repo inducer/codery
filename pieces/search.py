@@ -11,6 +11,7 @@ from crispy_forms.layout import Submit
 from pytools.lex import RE as REBase
 
 from pieces.models import PieceTag, Piece
+from coding.models import AssignmentTag
 
 
 # {{{ parsing
@@ -23,7 +24,9 @@ _not = intern("not")
 _openpar = intern("openpar")
 _closepar = intern("closepar")
 _id = intern("id")
+_study_id = intern("study_id")
 _tag = intern("tag")
+_assignment_tag = intern("_assignment_tag")
 _regex = intern("regex")
 _word = intern("word")
 _near = intern("near")
@@ -46,7 +49,9 @@ _LEX_TABLE = [
     (_openpar, RE(r"\(")),
     (_closepar, RE(r"\)")),
     (_id, RE(r"id:([0-9]+)")),
+    (_study_id, RE(r"study\-id:([0-9]+)")),
     (_tag, RE(r"tag:([-\w]+)")),
+    (_assignment_tag, RE(r"atag:([-\w]+)")),
     (_regex, RE(r"regex:(\S+)")),
     (_word, RE(r"word:(\S+)")),
     (_near, RE(r"near:([1-9]),(\w+),(\w+)")),
@@ -77,6 +82,14 @@ def parse_query(expr_str):
             tag = PieceTag.objects.get(
                     name=pstate.next_match_obj().group(1))
             result = Q(tags__id=tag.id)
+            pstate.advance()
+            return result
+        if next_tag is _assignment_tag:
+            atag_ids = [
+                    atag.id for atag in
+                    AssignmentTag.objects.filter(
+                        name=pstate.next_match_obj().group(1))]
+            result = Q(coding_assignments__tags__id__in=atag_ids)
             pstate.advance()
             return result
         elif next_tag is _regex:
@@ -110,6 +123,10 @@ def parse_query(expr_str):
             return Q(content__icontains=text) | Q(title__icontains=text)
         elif next_tag in [_id]:
             result = Q(id=int(pstate.next_match_obj().group(1)))
+            pstate.advance()
+            return result
+        elif next_tag in [_study_id]:
+            result = Q(studies__id=int(pstate.next_match_obj().group(1)))
             pstate.advance()
             return result
         else:
@@ -194,7 +211,9 @@ class SearchForm(forms.Form):
                 <code>word:<i>someword</i></code>,
                 <code>near:<i>3</i>,<i>someword</i>,<i>otherword</i></code>,
                 <code>id:<i>1234</i></code>,
+                <code>study-id:<i>1234</i></code>,
                 <code>tag:<i>piece-tag</i></code>,
+                <code>atag:<i>assignment-tag</i></code>,
                 <code>regex:<i>regular-expression</i></code>.
                 """)
         if assign_tag_allowed:

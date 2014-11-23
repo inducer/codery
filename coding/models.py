@@ -66,7 +66,7 @@ class AssignmentTag(models.Model):
 
 class CodingAssignment(models.Model):
     coder = models.ForeignKey(User, related_name="coding_assignments")
-    piece = models.ForeignKey(Piece)
+    piece = models.ForeignKey(Piece, related_name="coding_assignments")
     sample = models.ForeignKey(Sample)
 
     results = models.TextField(null=True, blank=True)
