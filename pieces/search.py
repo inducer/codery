@@ -214,7 +214,12 @@ class SearchForm(forms.Form):
                 <code>study-id:<i>1234</i></code>,
                 <code>tag:<i>piece-tag</i></code>,
                 <code>atag:<i>assignment-tag</i></code>,
-                <code>regex:<i>regular-expression</i></code>.
+                <code>regex:<i>
+<a href="http://www.postgresql.org/docs/current/static/functions-matching.html">\
+regular-expression</a></i></code>.
+                Combining these with parentheses <code>()</code>,
+                <code>and</code>, <code>or</code>, and <code>not</code>
+                is supported. Text queries are not case sensitive.
                 """)
         if assign_tag_allowed:
             self.fields["tag"] = forms.ModelChoiceField(
