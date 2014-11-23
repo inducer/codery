@@ -4,7 +4,7 @@ import datetime
 
 from django.db import transaction
 
-C457_PARSE_RE = re.compile("^([-A-Z]+): (.*)$", re.MULTILINE)
+C457_PARSE_RE = re.compile("^([-A-Z]+):\s+(.*)$", re.MULTILINE | re.UNICODE)
 DATE_ISH_PARSE_RE = re.compile(r"^([A-Za-z]+),? ([0-9]+)\, ([0-9]+)", re.MULTILINE)
 
 from pieces.models import (Piece, Venue,
