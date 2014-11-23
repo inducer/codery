@@ -1,10 +1,11 @@
-# Django>=1.7 once released
 Django>=1.7
 
 BeautifulSoup4
 django-crispy-forms>=1.4.0
 docutils>=0.11
 pytz
+
+pytools>=2014.3.3
 
 django-jinja
 

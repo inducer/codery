@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% load crispy_forms_tags %}
+
+{% block content %}
+  <h2>Search</h2>
+  <div class="well">
+    {% crispy form %}
+  </div>
+  {% if pieces != None %}
+    {% if pieces %}
+      <table class="table table-striped table-condensed">
+        <tr>
+          <th>ID</th>
+          <th>Title</th>
+          <th>Venue</th>
+          <th>Tags</th>
+        </tr>
+        {% for piece in pieces %}
+          <tr>
+            <td><a href="{{ piece.get_absolute_url }}">{{ piece.id }}</a></td>
+            <td>{{ piece.title }}</td>
+            <td>{{ piece.venue }}</td>
+            <td>
+              {% for tag in piece.tags.all %}
+                {% if tag.shown_to_coders or may_see_non_coder_tags %}
+                  <span class="label label-default">{{tag.name}}</span>
+                {% endif %}
+              {% endfor %}
+            </td>
+          </tr>
+        {% endfor %}
+      </table>
+      {{ count }} piece{{ count|pluralize }} found.
+    {% else %}
+      <div class="alert alert-info">
+        No search results.
+      </div>
+    {% endif %}
+  {% endif %}
+{% endblock %}

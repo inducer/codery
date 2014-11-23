@@ -19,6 +19,8 @@ urlpatterns = patterns('',
 
     ('^piece/(?P<id>[0-9]+)/$', 'pieces.views.show_piece'),
     ('^piece/import-ln-html/$', 'pieces.views.import_ln_html'),
+    ('^piece/search/$', 'pieces.search.view_search_form'),
+    ('^piece/search/large/$', 'pieces.search.view_large_search_form'),
 
     ('^coding/create-sample/$', 'coding.views.create_sample'),
     ('^coding/assign/$', 'coding.views.assign_to_coders'),

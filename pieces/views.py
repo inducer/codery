@@ -30,6 +30,7 @@ def show_piece(request, id):
         "piece": piece,
         "extra_data": extra_data,
         "content": content,
+        "may_see_non_coder_tags": request.user.has_perm("may_see_non_coder_tags"),
         })
 
 

@@ -4,7 +4,7 @@
 
 <div class="piece-tags">
   {% for tag in piece.tags.all %}
-    {% if tag.shown_to_coders %}
+    {% if tag.shown_to_coders or may_see_non_coder_tags %}
     <span class="label label-default">{{tag.name}}</span>
     {% endif %}
   {% endfor %}

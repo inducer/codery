@@ -104,6 +104,14 @@ class PieceTag(models.Model):
     def __unicode__(self):
         return self.name
 
+    class Meta:
+        permissions = (
+            ("tag_by_search",
+                "Can assign piece tags to search result"),
+            ("may_see_non_coder_tags",
+                "May see non-coder tags"),
+            )
+
 
 def get_piece_tag(name):
     tags = PieceTag.objects.filter(name=name)
