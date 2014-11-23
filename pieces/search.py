@@ -128,7 +128,6 @@ def parse_query(expr_str):
                     regex += "\W+\w+"
                 regex += r"\W+" + word2 + WORD_BDRY
                 regexes.append(regex)
-                print regex
             re_value = "|".join(regexes)
             pstate.advance()
             return Q(content__iregex=re_value) | Q(title__iregex=re_value)
