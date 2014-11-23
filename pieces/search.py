@@ -12,6 +12,7 @@ from pytools.lex import RE as REBase
 
 from pieces.models import PieceTag, Piece
 from coding.models import AssignmentTag
+from django import db
 
 
 # {{{ parsing
@@ -74,6 +75,12 @@ _PREC_NOT = 30
 # {{{ parser
 
 def parse_query(expr_str):
+    from django.db.backends.sqlite3.base import DatabaseWrapper as SQLite3DB
+    if isinstance(db.connections["default"], SQLite3DB):
+        WORD_BDRY = r"\b"
+    else:
+        WORD_BDRY = r"\y"
+
     from django.db.models import Q
 
     def parse_terminal(pstate):
@@ -97,7 +104,9 @@ def parse_query(expr_str):
             pstate.advance()
             return Q(content__iregex=re_value) | Q(title__iregex=re_value)
         elif next_tag is _word:
-            re_value = r"\b%s\b" % pstate.next_match_obj().group(1)
+            re_value = r"{wb}{word}{wb}".format(
+                    wb=WORD_BDRY,
+                    word=pstate.next_match_obj().group(1))
             pstate.advance()
             return Q(content__iregex=re_value) | Q(title__iregex=re_value)
         elif next_tag is _near:
@@ -109,13 +118,12 @@ def parse_query(expr_str):
             regexes = []
             for first_word, second_word in [(word1, word2), (word2, word1)]:
                 for i in range(0, dist):
-                    regex = r"\b%s" % first_word
+                    regex = WORD_BDRY+first_word
                     for j in range(i):
                         regex += "\W+\w+"
-                    regex += r"\W+%s\b" % second_word
+                    regex += r"\W+" + second_word + WORD_BDRY
                     regexes.append(regex)
             re_value = "|".join(regexes)
-            print re_value
             pstate.advance()
             return Q(content__iregex=re_value) | Q(title__iregex=re_value)
         elif next_tag is _fulltext:
