@@ -183,7 +183,7 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
                     continue
 
                 span_class, = span["class"]
-                text = child.get_text()
+                text = span.get_text()+"\n\n"
                 loggable_text = text.rstrip()[:20].encode("ascii", errors="replace")
 
                 key = "".join([div_class, p_class, span_class])
