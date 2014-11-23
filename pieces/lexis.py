@@ -99,12 +99,15 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
 
             return
 
-        new_tags = tags[:]
+        new_tags = list(tags)
 
-        for piece in Piece.objects.filter(title=current_piece.title):
+        for piece in (Piece.objects
+                    .filter(title=current_piece.title)
+                    .exclude(tags__id=dupe_tag.id)):
             if (piece.content == current_piece.content
                     and piece.venue == current_piece.venue):
                 new_tags.append(dupe_tag)
+                extra_data["CODERY_DUPLICATE_OF"] = piece.id
                 break
 
         current_piece.create_date = create_date
