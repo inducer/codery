@@ -49,19 +49,24 @@ _LEX_TABLE = [
     (_not, RE(r"not\b")),
     (_openpar, RE(r"\(")),
     (_closepar, RE(r"\)")),
+
+    # TERMINALS
     (_id, RE(r"id:([0-9]+)")),
     (_study_id, RE(r"study\-id:([0-9]+)")),
     (_tag, RE(r"tag:([-\w]+)")),
     (_assignment_tag, RE(r"atag:([-\w]+)")),
     (_regex, RE(r"regex:(\S+)")),
     (_word, RE(r"word:(\S+)")),
-    (_near, RE(r"near:([1-9]),(\w+),(\w+)")),
+    (_near, RE(r"near:([0-9]),(\w+),(\w+)")),
     (_fulltext, RE(r'".*?(?!\\\\)"')),
+
     (_whitespace, RE("[ \t]+")),
     ]
 
 
-_TERMINALS = ([_tag, _fulltext, _id])
+_TERMINALS = ([
+    _id, _study_id, _tag, _assignment_tag, _regex,
+    _word, _near, _fulltext])
 
 # {{{ operator precedence
 
@@ -116,13 +121,14 @@ def parse_query(expr_str):
             word2 = match_obj.group(3)
 
             regexes = []
-            for first_word, second_word in [(word1, word2), (word2, word1)]:
-                for i in range(0, dist):
-                    regex = WORD_BDRY+first_word
-                    for j in range(i):
-                        regex += "\W+\w+"
-                    regex += r"\W+" + second_word + WORD_BDRY
-                    regexes.append(regex)
+
+            for i in range(0, dist+1):
+                regex = WORD_BDRY+word1
+                for j in range(i):
+                    regex += "\W+\w+"
+                regex += r"\W+" + word2 + WORD_BDRY
+                regexes.append(regex)
+                print regex
             re_value = "|".join(regexes)
             pstate.advance()
             return Q(content__iregex=re_value) | Q(title__iregex=re_value)
@@ -217,7 +223,9 @@ class SearchForm(forms.Form):
                 The following search syntax is supported:
                 <code>"<i>fulltext</i>"</code>,
                 <code>word:<i>someword</i></code>,
-                <code>near:<i>3</i>,<i>someword</i>,<i>otherword</i></code>,
+                <code>near:<i>3</i>,<i>someword</i>,<i>otherword</i></code>
+                ('someword' and 'otherword' are separated by at most 3 words,
+                with 'someword' occurring first),
                 <code>id:<i>1234</i></code>,
                 <code>study-id:<i>1234</i></code>,
                 <code>tag:<i>piece-tag</i></code>,
