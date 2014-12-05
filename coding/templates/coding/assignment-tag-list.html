@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Assignment tags - Codery{% endblock %}
+
+{% block content %}
+  {% for study, tags_and_counts in studies_and_tags_and_counts %}
+    <h2>{{study.name}}</h2>
+    <ul class="assignment-tag-list">
+      {% for tag, count in tags_and_counts %}
+      <li>
+        <a href="{% url "coding.views.view_assignments_by_tag" tag.pk %}"><span class="label label-primary">{{tag.name}}</span></a>
+        ({{ count }} coding assignments)
+      </li>
+      {% endfor %}
+    </ul>
+  {% endfor %}
+
+{% endblock %}

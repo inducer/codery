@@ -406,8 +406,16 @@ def view_assignments(request):
 
 @login_required
 def list_assignment_tags(request):
-    return render(request, 'coding/assignment-tag-list.jinja', {
-        "studies": Study.objects.order_by("name"),
+    studies_and_tags_and_counts = [
+            (study, [
+                (tag, tag.assignments.filter(coder=request.user).count())
+                for tag in study.assignment_tags.all()
+                ])
+            for study in Study.objects.order_by("name")
+            ]
+
+    return render(request, 'coding/assignment-tag-list.html', {
+        "studies_and_tags_and_counts": studies_and_tags_and_counts,
     })
 
 

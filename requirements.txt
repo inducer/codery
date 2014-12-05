@@ -7,6 +7,4 @@ pytz
 
 pytools>=2014.3.3
 
-django-jinja
-
 git+https://github.com/RyanBalfanz/django-admin-exporter.git
