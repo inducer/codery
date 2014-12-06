@@ -84,7 +84,8 @@ class CodingAssignment(models.Model):
 
     tags = models.ManyToManyField(AssignmentTag,
             verbose_name="assignment tag",
-            related_name="assignments")
+            related_name="assignments",
+            blank=True)
 
     def get_absolute_url(self):
         return "/coding/assignment/%d/" % self.id
