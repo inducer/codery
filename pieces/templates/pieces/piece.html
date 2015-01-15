@@ -4,4 +4,13 @@
 
 {% block content %}
   {% include "pieces/piece-data.html" %}
+
+  {% if user.is_staff and piece.coding_assignments.all %}
+    <h2>Coding Assignments</h2>
+    <ul>
+    {% for assignment in piece.coding_assignments.all %}
+    <li> coded by <a href="{{ assignment.get_absolute_url }}">{{ assignment.coder }}</a> via sample {{ assignment.sample }}</li>
+    {% endfor %}
+    </ul>
+  {% endif %}
 {% endblock %}
