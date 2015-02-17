@@ -183,7 +183,7 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
                     continue
 
                 span_class, = span["class"]
-                text = span.get_text()+"\n\n"
+                text = p.get_text()+"\n\n"
                 loggable_text = text.rstrip()[:20].encode("ascii", errors="replace")
 
                 key = "".join([div_class, p_class, span_class])
@@ -220,7 +220,7 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
                     else:
                         extra_data[field] = value
 
-                elif key in ["c3c1c2", "c3c1c4"]:
+                elif key.startswith("c3c1"):
                     parsed_date = parse_date_leniently(text)
 
                     if parsed_date is None:
@@ -233,9 +233,12 @@ def import_ln_html(log_lines, studies, html_file, tags, repair_content,
                         current_piece.pub_date_unparsed = text.rstrip()
                         current_piece.pub_date = parsed_date
 
-                elif key.startswith("c4c8") or key.startswith("c5c9") or key in [
-                        "c4c5c2",
-                        ]:
+                elif (key.startswith("c4c8")
+                        or key.startswith("c5c9")
+                        or key.startswith("c5c10")
+                        or key in [
+                            "c4c5c2"
+                            ]):
                     # body text
 
                     current_piece.content += text
