@@ -28,6 +28,9 @@ _id = intern("id")
 _study_id = intern("study_id")
 _tag = intern("tag")
 _assignment_tag = intern("_assignment_tag")
+_meta = intern("_meta")
+_pub_before = intern("_pub_before")
+_pub_after = intern("_pub_after")
 _regex = intern("regex")
 _word = intern("word")
 _near = intern("near")
@@ -55,6 +58,9 @@ _LEX_TABLE = [
     (_study_id, RE(r"study\-id:([0-9]+)")),
     (_tag, RE(r"tag:([-\w]+)")),
     (_assignment_tag, RE(r"atag:([-\w]+)")),
+    (_meta, RE(r"meta:([-._\w]+)")),
+    (_pub_before, RE(r"pubbefore:([0-9]{4,4})\-([0-9]{2,2})\-([0-9]{2,2})")),
+    (_pub_after, RE(r"pubafter:([0-9]{4,4})\-([0-9]{2,2})\-([0-9]{2,2})")),
     (_regex, RE(r"regex:(\S+)")),
     (_word, RE(r"word:(\S+)")),
     (_near, RE(r"near:([0-9]),(\w+),(\w+)")),
@@ -102,6 +108,37 @@ def parse_query(expr_str):
                     AssignmentTag.objects.filter(
                         name=pstate.next_match_obj().group(1))]
             result = Q(coding_assignments__tags__id__in=atag_ids)
+            pstate.advance()
+            return result
+        elif next_tag is _meta:
+            text = pstate.next_match_obj().group(1)
+            result = (
+                    Q(title__icontains=text)
+                    | Q(notes__icontains=text)
+                    | Q(pub_date_unparsed__icontains=text)
+                    | Q(byline__icontains=text)
+                    | Q(url__icontains=text)
+                    | Q(extra_data_json__icontains=text)
+                    | Q(venue__name__icontains=text)
+                    )
+
+            pstate.advance()
+            return result
+
+        elif next_tag in [_pub_before, _pub_after]:
+            import datetime
+            mo = pstate.next_match_obj()
+            date = datetime.date(
+                    year=int(mo.group(1)),
+                    month=int(mo.group(2)),
+                    day=int(mo.group(3)),
+                    )
+
+            if next_tag is _pub_before:
+                result = Q(pub_date__lt=date)
+            else:
+                result = Q(pub_date__gt=date)
+
             pstate.advance()
             return result
         elif next_tag is _regex:
@@ -229,6 +266,9 @@ class SearchForm(forms.Form):
                 <code>study-id:<i>1234</i></code>,
                 <code>tag:<i>piece-tag</i></code>,
                 <code>atag:<i>assignment-tag</i></code>,
+                <code>meta:<i>word</i></code> (<i>word</i> occurs in metadata),
+                <code>pubbefore:<i>YYYY-MM-DD</i></code>,
+                <code>pubafter:<i>YYYY-MM-DD</i></code>,
                 <code>regex:<i>
 <a href="http://www.postgresql.org/docs/current/static/functions-matching.html">\
 regular-expression</a></i></code>.
