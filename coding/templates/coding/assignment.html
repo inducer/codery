@@ -5,7 +5,7 @@
 {% block title %}{{ assignment.piece.title }} - Codery{% endblock %}
 
 {% block content %}
-  {% include "pieces/piece-data.html" %}
+  {% include "pieces/piece-data.html" with study=assignment.sample.study %}
   <hr>
 
   <ul>

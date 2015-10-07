@@ -1,34 +1,47 @@
 <h1>{{piece.title}}</h1>
 
-<hr>
+<table class="table table-condensed">
+  <tr> <th>Tags:</th> <td>
+    <div class="piece-tags">
+      {% for tag in piece.tags.all %}
+        {% if tag.shown_to_coders or may_see_non_coder_tags %}
+        <span class="label label-default">{{tag.name}}</span>
+        {% endif %}
+      {% endfor %}
+    </div>
+    </td>
+  </tr>
 
-<div class="piece-tags">
-  {% for tag in piece.tags.all %}
-    {% if tag.shown_to_coders or may_see_non_coder_tags %}
-    <span class="label label-default">{{tag.name}}</span>
-    {% endif %}
-  {% endfor %}
-</div>
-
-<p> <b>Piece ID:</b> {{piece.id}} </p>
-<p> <b>Venue:</b> {{piece.venue}} (Venue ID: {{piece.venue.id}}) </p>
-<p> <b>Publication Date:</b> {{piece.pub_date}} (Original: {{piece.pub_date_unparsed}}) </p>
-<p> <b>Publication Type:</b>
+  <tr> <th>Piece ID:</th> <td>{{piece.id}}</td> </tr>
+  <tr> <th>Venue:</th> <td>{{piece.venue}} (Venue ID: {{piece.venue.id}})</td> </tr>
+  <tr> <th>Publication Date:</th> <td>{{piece.pub_date}} (Original: {{piece.pub_date_unparsed}})</td> </tr>
+<tr> <th>Publication Type:</th>
+  <td>
   {% if piece.publication_type %}
   {{ piece.publication_type }}
   {% else %}
   (not known)
   {% endif %}
-</p>
+  </td>
+</tr>
 {% if piece.load_date %}
-  <p> <b>Load Date:</b> {{piece.load_date}} </p>
+<tr> <th>Load Date:</th> <td>{{piece.load_date}} </td></tr>
 {% endif %}
 {% if piece.url %}
-  <p> <b>URL:</b> {{piece.url}} </p>
+  <tr> <th>URL:</th>
+    <td>
+      {% if study.urls_clickable != False %}
+        <a href="{{piece.url}}" target="_blank">{{piece.url}}</a>
+      {% else %}
+        {{piece.url}}
+      {% endif %}
+    </td>
+  </tr>
 {% endif %}
 {% if piece.byline %}
-  <p> <b>Byline:</b> {{piece.byline}} </p>
+<tr> <th>Byline:</th> <td>{{piece.byline}}</td> </tr>
 {% endif %}
+</table>
 
 <div class="panel panel-default">
   <div class="panel-heading">

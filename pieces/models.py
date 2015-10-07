@@ -20,6 +20,8 @@ class Study(models.Model):
 
     coding_tool_url = models.URLField(null=True, blank=True)
 
+    urls_clickable = models.BooleanField(default=False)
+
     class Meta:
         verbose_name_plural = "studies"
 
