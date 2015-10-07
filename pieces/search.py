@@ -315,7 +315,7 @@ def view_search_form(request, large_query=False):
                 pieces = (Piece.objects
                         .filter(query)
                         .order_by("id")
-                        .select_related("tags"))
+                        .prefetch_related("tags"))
             except Exception as e:
                 messages.add_message(request, messages.ERROR,
                         type(e).__name__+": "+str(e))

@@ -1,0 +1,24 @@
+<table class="table table-conndensed">
+  <tr>
+    <th>Title</th>
+    <th>Content</th>
+    <th>Byline</th>
+    <th>URL</th>
+    <th>Extra data</th>
+  </tr>
+  {% for piece in pieces %}
+  <tr>
+    <td>{{ piece.title }}</td>
+    <td>{{ piece.content }}</td>
+    <td>{{ piece.byline|default:"-/-"  }}</td>
+    <td>
+      {% if piece.url %}
+      <a href="{{ piece.url }}">{{ piece.url }}</a>
+      {% else %}
+      -/-
+      {% endif %}
+    </td>
+    <td>{{ piece.extra_data_json|default:"-/-"  }}</td>
+  </tr>
+  {% endfor %}
+</table>
