@@ -8,7 +8,7 @@ from django.contrib import messages
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
 
-from pytools.lex import RE as REBase
+from pytools.lex import RE as REBase  # noqa
 
 from pieces.models import PieceTag, Piece
 from coding.models import AssignmentTag
