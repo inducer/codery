@@ -287,7 +287,7 @@ regular-expression</a></i></code>.
         self.fields["query"].widget.attrs["autofocus"] = None
 
         self.helper.add_input(
-                Submit("search", "Search", css_class="col-lg-offset-1"))
+                Submit("search", "Search"))
         if assign_tag_allowed:
             self.helper.add_input(
                     Submit("assign_tag", "Assign tag"))

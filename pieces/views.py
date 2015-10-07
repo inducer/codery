@@ -65,7 +65,7 @@ class ImportLNForm(forms.Form):
         self.helper.field_class = "col-lg-8"
 
         self.helper.add_input(
-                Submit("submit", "Submit", css_class="col-lg-offset-2"))
+                Submit("submit", "Submit"))
         super(ImportLNForm, self).__init__(*args, **kwargs)
 
 

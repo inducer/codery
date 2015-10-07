@@ -47,7 +47,7 @@ class CreateSampleForm(forms.Form):
         self.helper.label_class = "col-lg-2"
         self.helper.field_class = "col-lg-8"
         self.helper.add_input(
-                Submit("submit", "Submit", css_class="col-lg-offset-2"))
+                Submit("submit", "Submit"))
         super(CreateSampleForm, self).__init__(*args, **kwargs)
 
 
@@ -142,7 +142,7 @@ class AssignToCodersForm(forms.Form):
         self.helper.field_class = "col-lg-8"
 
         self.helper.add_input(
-                Submit("submit", "Submit", css_class="col-lg-offset-2"))
+                Submit("submit", "Submit"))
         super(AssignToCodersForm, self).__init__(*args, **kwargs)
 
 
@@ -451,7 +451,7 @@ class AssignmentUpdateForm(forms.Form):
         self.helper.field_class = "col-lg-8"
 
         self.helper.add_input(
-                Submit("submit", "Update", css_class="col-lg-offset-2"))
+                Submit("submit", "Update"))
 
         super(AssignmentUpdateForm, self).__init__(*args, **kwargs)
 

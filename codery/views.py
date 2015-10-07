@@ -18,7 +18,7 @@ class AuthenticationForm(AuthenticationFormBase):
         #         )
 
         self.helper.add_input(
-                Submit("submit", "Sign in", css_class="col-lg-offset-2"))
+                Submit("submit", "Sign in"))
         super(AuthenticationForm, self).__init__(*args, **kwargs)
 
 
