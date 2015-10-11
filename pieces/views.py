@@ -141,7 +141,8 @@ class CSVImportForm(forms.Form):
             help_text="Select piece tags (if any) to apply to newly "
             "imported pieces.")
     file = forms.FileField(
-            label=_("File"))
+            label=_("File"),
+            help_text="CSV file with header row")
 
     title_column = forms.IntegerField(
             help_text=_("1-based column index for a title"),
