@@ -182,13 +182,18 @@ def csv_to_pieces(
         creator, create_date):
     result = []
 
+    csv_data = file_contents.read()
+    import re
+    new_line_re = re.compile("\n\r?|\r\n?")
+    csv_lines = new_line_re.split(csv_data)
+
     import csv
 
     used_columns = [
         title_column, content_column, url_column, byline_column]
     used_columns = [col-1 for col in used_columns if col is not None]
 
-    reader = csv.reader(file_contents)
+    reader = csv.reader(csv_lines)
     header = None
 
     import re
