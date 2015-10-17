@@ -1,7 +1,7 @@
 Django>=1.7
 
 BeautifulSoup4
-django-crispy-forms>=1.4.0
+django-crispy-forms>=1.5.0
 docutils>=0.11
 pytz
 
