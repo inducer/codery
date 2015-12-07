@@ -16,19 +16,19 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='assignmenttag',
             name='study',
-            field=models.ForeignKey(related_name='assignment_tags', default=coding.models.grab_some_study, to='pieces.Study'),
+            field=models.ForeignKey(related_name='assignment_tags', default=coding.models.grab_some_study, to='pieces.Study', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='codingassignment',
             name='coder',
-            field=models.ForeignKey(related_name='coding_assignments', to=settings.AUTH_USER_MODEL),
+            field=models.ForeignKey(related_name='coding_assignments', to=settings.AUTH_USER_MODEL, on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(
             model_name='codingassignment',
             name='piece',
-            field=models.ForeignKey(related_name='coding_assignments', to='pieces.Piece'),
+            field=models.ForeignKey(related_name='coding_assignments', to='pieces.Piece', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(
@@ -40,7 +40,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='codingassignmentactivity',
             name='assignment',
-            field=models.ForeignKey(related_name='activities', to='coding.CodingAssignment'),
+            field=models.ForeignKey(related_name='activities', to='coding.CodingAssignment', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(

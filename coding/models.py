@@ -6,13 +6,13 @@ from django.utils.timezone import now
 
 
 class Sample(models.Model):
-    study = models.ForeignKey(Study)
+    study = models.ForeignKey(Study, on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
 
     notes = models.TextField(null=True, blank=True)
 
     create_date = models.DateTimeField(default=now)
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
 
     pieces = models.ManyToManyField(Piece, related_name="samples")
 
@@ -54,7 +54,7 @@ class AssignmentTag(models.Model):
     study = models.ForeignKey(
             Study, null=False,
             default=grab_some_study,
-            related_name="assignment_tags")
+            related_name="assignment_tags", on_delete=models.CASCADE)
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.study.name)
@@ -65,9 +65,17 @@ class AssignmentTag(models.Model):
 
 
 class CodingAssignment(models.Model):
-    coder = models.ForeignKey(User, related_name="coding_assignments")
-    piece = models.ForeignKey(Piece, related_name="coding_assignments")
-    sample = models.ForeignKey(Sample)
+    coder = models.ForeignKey(
+            User,
+            related_name="coding_assignments",
+            on_delete=models.CASCADE)
+    piece = models.ForeignKey(
+            Piece,
+            related_name="coding_assignments",
+            on_delete=models.CASCADE)
+    sample = models.ForeignKey(
+            Sample,
+            on_delete=models.CASCADE)
 
     results = models.TextField(null=True, blank=True)
 
@@ -80,7 +88,9 @@ class CodingAssignment(models.Model):
     latest_coding_form_url = models.URLField(null=True, blank=True)
 
     creation_time = models.DateTimeField(default=now)
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(
+            User,
+            on_delete=models.CASCADE)
 
     tags = models.ManyToManyField(AssignmentTag,
             verbose_name="assignment tag",
@@ -112,10 +122,16 @@ ACTION_CHOICES = (
 
 
 class CodingAssignmentActivity(models.Model):
-    assignment = models.ForeignKey(CodingAssignment, related_name="activities")
+    assignment = models.ForeignKey(
+            CodingAssignment,
+            related_name="activities",
+            on_delete=models.CASCADE)
 
     action_time = models.DateTimeField(default=now, db_index=True)
-    actor = models.ForeignKey(User, db_index=True)
+    actor = models.ForeignKey(
+            User,
+            db_index=True,
+            on_delete=models.CASCADE)
 
     action = models.CharField(max_length=10, choices=ACTION_CHOICES)
     state = models.CharField(max_length=10,

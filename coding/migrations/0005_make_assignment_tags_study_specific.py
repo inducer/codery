@@ -15,7 +15,7 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='assignmenttag',
             name='study',
-            field=models.ForeignKey(to='pieces.Study', default=coding.models.grab_some_study, to_field='id'),
+            field=models.ForeignKey(to='pieces.Study', default=coding.models.grab_some_study, to_field='id', on_delete=models.CASCADE),
             preserve_default=True,
         ),
         migrations.AlterField(

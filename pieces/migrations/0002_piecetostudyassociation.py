@@ -18,10 +18,10 @@ class Migration(migrations.Migration):
             name='PieceToStudyAssociation',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
-                ('study', models.ForeignKey(to='pieces.Study', to_field='id')),
-                ('piece', models.ForeignKey(to='pieces.Piece', to_field='id')),
+                ('study', models.ForeignKey(to='pieces.Study', to_field='id', on_delete=models.CASCADE)),
+                ('piece', models.ForeignKey(to='pieces.Piece', to_field='id', on_delete=models.CASCADE)),
                 ('create_date', models.DateTimeField(default=datetime.datetime.now)),
-                ('creator', models.ForeignKey(to=settings.AUTH_USER_MODEL, to_field='id')),
+                ('creator', models.ForeignKey(to=settings.AUTH_USER_MODEL, to_field='id', on_delete=models.CASCADE)),
             ],
             options={
             },

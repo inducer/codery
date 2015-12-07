@@ -57,15 +57,33 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
 )
 
 ROOT_URLCONF = 'codery.urls'
 
 WSGI_APPLICATION = 'codery.wsgi.application'
 
-TEMPLATE_DIRS = (
-        join(BASE_DIR, "codery", "templates"),
-        )
+TEMPLATES = [
+    {
+        "BACKEND": "django.template.backends.django.DjangoTemplates",
+        "APP_DIRS": True,
+        "DIRS": (
+            join(BASE_DIR, "codery", "templates"),
+            ),
+        "OPTIONS": {
+            "context_processors": (
+                "django.contrib.auth.context_processors.auth",
+                "django.template.context_processors.debug",
+                "django.template.context_processors.i18n",
+                "django.template.context_processors.media",
+                "django.template.context_processors.static",
+                "django.template.context_processors.tz",
+                "django.contrib.messages.context_processors.messages",
+                ),
+            },
+    }]
+
 STATICFILES_DIRS = (
         join(BASE_DIR, "codery", "static"),
         )
@@ -101,6 +119,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = join(BASE_DIR, "static")
 
-for name, val in local_settings.iteritems():
+for name, val in local_settings.items():
     if not name.startswith("_"):
         globals()[name] = val

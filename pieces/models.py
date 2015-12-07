@@ -54,7 +54,7 @@ COLOR_CHOICES = (
 
 
 class Keyword(models.Model):
-    study = models.ForeignKey(Study)
+    study = models.ForeignKey(Study, on_delete=models.CASCADE)
     rule = models.CharField(
             max_length=20, choices=KW_RULE_CHOICES,
             help_text="The 'Substring' rule matches any occurrence "
@@ -138,7 +138,7 @@ class Piece(models.Model):
     studies = models.ManyToManyField(Study,
             through='PieceToStudyAssociation')
 
-    venue = models.ForeignKey(Venue)
+    venue = models.ForeignKey(Venue, on_delete=models.CASCADE)
     pub_date = models.DateField(null=True, blank=True)
     pub_date_unparsed = models.CharField(max_length=1000, null=True, blank=True)
 
@@ -148,7 +148,7 @@ class Piece(models.Model):
     url = models.URLField(null=True, blank=True)
 
     create_date = models.DateTimeField(default=now)
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
 
     extra_data_json = models.TextField(null=True, blank=True)
 
@@ -183,11 +183,11 @@ class Piece(models.Model):
 
 
 class PieceToStudyAssociation(models.Model):
-    study = models.ForeignKey(Study)
-    piece = models.ForeignKey(Piece)
+    study = models.ForeignKey(Study, on_delete=models.CASCADE)
+    piece = models.ForeignKey(Piece, on_delete=models.CASCADE)
 
     create_date = models.DateTimeField(default=now)
-    creator = models.ForeignKey(User)
+    creator = models.ForeignKey(User, on_delete=models.CASCADE)
 
     def __unicode__(self):
         return u"%s - %s" % (self.piece, self.study)
