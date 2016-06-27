@@ -1,9 +1,13 @@
 from django.shortcuts import render
 import django.forms as forms
 
-from django.contrib.auth.decorators import login_required
+import six
+from six.moves import intern
 
+from django.contrib.auth.decorators import login_required
+from django import db
 from django.contrib import messages
+from django import http
 
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Submit
@@ -12,7 +16,6 @@ from pytools.lex import RE as REBase  # noqa
 
 from pieces.models import PieceTag, Piece
 from coding.models import AssignmentTag
-from django import db
 
 
 # {{{ parsing
@@ -293,6 +296,8 @@ regular-expression</a></i></code>.
                     Submit("assign_tag", "Assign tag"))
             self.helper.add_input(
                     Submit("remove_tag", "Remove tag"))
+            self.helper.add_input(
+                    Submit("export_csv", "Export CSV"))
 
 
 @login_required
@@ -307,6 +312,7 @@ def view_search_form(request, large_query=False):
                 request.POST, request.FILES)
         assign_tag = assign_tag_allowed and "assign_tag" in request.POST
         remove_tag = assign_tag_allowed and "remove_tag" in request.POST
+        export_csv = "export_csv" in request.POST
 
         if form.is_valid():
             try:
@@ -342,6 +348,60 @@ def view_search_form(request, large_query=False):
                     messages.add_message(request, messages.INFO,
                             "%d tags removed." % count)
 
+                if export_csv:
+                    from six import StringIO
+                    csvfile = StringIO()
+
+                    if six.PY2:
+                        import unicodecsv as csv
+                    else:
+                        import csv
+
+                    fieldnames = ['id', 'title', 'content', 'publication_type',
+                            'notes', 'venue__id', 'venue', 'pub_date',
+                            'pub_date_unparsed', 'source_load_date', 'byline', 'url',
+                            'create_date', 'creator', 'extra_data_json',
+                            'tags', 'assignment_tags']
+
+                    writer = csv.writer(csvfile)
+                    writer.writerow(fieldnames)
+
+                    def get_formatted_piece_field(piece, fieldname):
+                        if fieldname == "tags":
+                            return u", ".join(
+                                    six.text_type(t)
+                                    for t in piece.tags.all())
+
+                        elif fieldname == "assignment_tags":
+                            return u", ".join(
+                                    six.text_type(t.name)
+                                    for a in piece.coding_assignments.all()
+                                    for t in a.tags.all())
+
+                        elif fieldname.endswith("__id"):
+                            return six.text_type(getattr(piece, fieldname[:-4]).id)
+
+                        else:
+                            val = getattr(piece, fieldname)
+                            if val is None:
+                                return u""
+                            else:
+                                return six.text_type(val)
+
+                    for piece in pieces:
+                        writer.writerow([
+                            get_formatted_piece_field(piece, fieldname)
+                            for fieldname in fieldnames])
+
+                    data = csvfile.getvalue()
+                    if isinstance(data, six.text_type):
+                        data = data.encode("utf-8")
+                    response = http.HttpResponse(
+                            data,
+                            content_type="text/plain; charset=utf-8")
+                    response['Content-Disposition'] = (
+                            'attachment; filename="export.csv"')
+                    return response
     else:
         form = SearchForm(assign_tag_allowed, large_query)
 
