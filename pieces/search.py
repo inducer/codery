@@ -29,6 +29,7 @@ _openpar = intern("openpar")
 _closepar = intern("closepar")
 _id = intern("id")
 _study_id = intern("study_id")
+_sample_id = intern("sample_id")
 _tag = intern("tag")
 _assignment_tag = intern("_assignment_tag")
 _meta = intern("_meta")
@@ -59,6 +60,7 @@ _LEX_TABLE = [
     # TERMINALS
     (_id, RE(r"id:([0-9]+)")),
     (_study_id, RE(r"study\-id:([0-9]+)")),
+    (_sample_id, RE(r"sample\-id:([0-9]+)")),
     (_tag, RE(r"tag:([-\w]+)")),
     (_assignment_tag, RE(r"atag:([-\w]+)")),
     (_meta, RE(r"meta:([-._\w]+)")),
@@ -74,7 +76,7 @@ _LEX_TABLE = [
 
 
 _TERMINALS = ([
-    _id, _study_id, _tag, _assignment_tag, _regex,
+    _id, _study_id, _sample_id, _tag, _assignment_tag, _regex,
     _word, _near, _fulltext])
 
 # {{{ operator precedence
@@ -182,6 +184,10 @@ def parse_query(expr_str):
             result = Q(studies__id=int(pstate.next_match_obj().group(1)))
             pstate.advance()
             return result
+        elif next_tag in [_sample_id]:
+            result = Q(samples__id=int(pstate.next_match_obj().group(1)))
+            pstate.advance()
+            return result
         else:
             pstate.expected("terminal")
 
@@ -267,6 +273,7 @@ class SearchForm(forms.Form):
                 with 'someword' occurring first),
                 <code>id:<i>1234</i></code>,
                 <code>study-id:<i>1234</i></code>,
+                <code>sample-id:<i>1234</i></code>,
                 <code>tag:<i>piece-tag</i></code>,
                 <code>atag:<i>assignment-tag</i></code>,
                 <code>meta:<i>word</i></code> (<i>word</i> occurs in metadata),
