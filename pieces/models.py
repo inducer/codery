@@ -2,12 +2,17 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.utils.timezone import now
 
+import six
+
 
 class Venue(models.Model):
     name = models.CharField(max_length=200)
 
     def __unicode__(self):
         return self.name
+
+    if six.PY3:
+        __str__ = __unicode__
 
     class Meta:
         ordering = ["name"]
@@ -25,7 +30,7 @@ class Study(models.Model):
     class Meta:
         verbose_name_plural = "studies"
 
-    def __unicode__(self):
+    def __str__(self):
         return self.name
 
 
@@ -74,6 +79,9 @@ class Keyword(models.Model):
     def __unicode__(self):
         return "%s: %s" % (self.rule, self.pattern)
 
+    if six.PY3:
+        __str__ = __unicode__
+
     def get_re(self):
         import re
         if self.rule == keyword_rule.substring:
@@ -105,6 +113,9 @@ class PieceTag(models.Model):
 
     def __unicode__(self):
         return self.name
+
+    if six.PY3:
+        __str__ = __unicode__
 
     class Meta:
         permissions = (
@@ -174,6 +185,9 @@ class Piece(models.Model):
 
         return "%s: %s" % (id_str, self.display_title())
 
+    if six.PY3:
+        __str__ = __unicode__
+
     class Meta:
         ordering = ["-pub_date", "title"]
 
@@ -191,3 +205,6 @@ class PieceToStudyAssociation(models.Model):
 
     def __unicode__(self):
         return u"%s - %s" % (self.piece, self.study)
+
+    if six.PY3:
+        __str__ = __unicode__

@@ -4,6 +4,8 @@ from django.contrib.auth.models import User
 from pieces.models import Study, Piece
 from django.utils.timezone import now
 
+import six
+
 
 class Sample(models.Model):
     study = models.ForeignKey(Study, on_delete=models.CASCADE)
@@ -18,6 +20,9 @@ class Sample(models.Model):
 
     def __unicode__(self):
         return u"%s (%d pieces, %s)" % (self.name, self.pieces.count(), self.study)
+
+    if six.PY3:
+        __str__ = __unicode__
 
     class Meta:
         permissions = (
@@ -58,6 +63,9 @@ class AssignmentTag(models.Model):
 
     def __unicode__(self):
         return "%s (%s)" % (self.name, self.study.name)
+
+    if six.PY3:
+        __str__ = __unicode__
 
     class Meta:
         unique_together = (("name", "study"),)
@@ -102,6 +110,9 @@ class CodingAssignment(models.Model):
 
     def __unicode__(self):
         return u"%s -> %s (%s)" % (self.piece, self.coder, self.sample.name)
+
+    if six.PY3:
+        __str__ = __unicode__
 
     class Meta:
         permissions = (
