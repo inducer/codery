@@ -43,7 +43,6 @@ INSTALLED_APPS = (
     'pieces',
     'coding',
     'crispy_forms',
-    'admin_exporter',
 )
 
 CRISPY_TEMPLATE_PACK = "bootstrap3"

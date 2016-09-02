@@ -5,9 +5,6 @@ from pieces.models import (
         Piece, Venue, Study, Keyword,
         PieceToStudyAssociation)
 
-from admin_exporter.actions import export_as_csv_action
-admin.site.add_action(export_as_csv_action)
-
 
 # {{{ studies
 
