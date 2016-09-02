@@ -8,7 +8,7 @@
     <ul class="assignment-tag-list">
       {% for tag, count in tags_and_counts %}
       <li>
-        <a href="{% url "coding.views.view_assignments_by_tag" tag.pk %}"><span class="label label-primary">{{tag.name}}</span></a>
+        <a href="{% url "coding-view_assignments_by_tag" tag.pk %}"><span class="label label-primary">{{tag.name}}</span></a>
         ({{ count }} coding assignments)
       </li>
       {% endfor %}
