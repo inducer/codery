@@ -14,6 +14,10 @@ class KeywordInline(admin.TabularInline):
 
 
 class StudyAdmin(admin.ModelAdmin):
+    list_display = ("id", "name", "start_date")
+
+    date_hierarchy = "start_date"
+
     inlines = [KeywordInline]
 
 admin.site.register(Study, StudyAdmin)

@@ -5,6 +5,7 @@ from coding.models import (
 
 
 class SampleAdmin(admin.ModelAdmin):
+    list_display = ("id",  "study", "name", "creator", "create_date")
     filter_horizontal = ("pieces",)
 
 admin.site.register(Sample, SampleAdmin)
