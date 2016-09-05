@@ -2,6 +2,9 @@ from django.shortcuts import render, get_object_or_404
 import re
 import sys
 
+import six
+from six.moves import range
+
 import django.forms as forms
 from django.http import HttpResponseForbidden
 
@@ -230,7 +233,7 @@ def assign_to_coders_backend(sample,
                 sample=sample, piece=piece).count()
         if (limit_to_unassigned and n_piece_assignments):
             log_lines.append("%s already assigned to someone, skipping."
-                    % unicode(piece))
+                    % six.text_type(piece))
             continue
 
         assign_times = assign_each_piece_n_times
@@ -247,10 +250,10 @@ def assign_to_coders_backend(sample,
 
         if assign_times == 0:
             log_lines.append("Piece '%s' has reached max assignment count, skipping."
-                    % unicode(piece))
+                    % six.text_type(piece))
             continue
 
-        for i_assignment in xrange(assign_times):
+        for i_assignment in range(assign_times):
 
             local_coder_idx = coder_idx
             assignment_tries = 0
@@ -268,7 +271,7 @@ def assign_to_coders_backend(sample,
 
             if assignment_tries >= num_coders:
                 log_lines.append("Piece '%s' already assigned "
-                        "to all coders, skipping." % unicode(piece))
+                        "to all coders, skipping." % six.text_type(piece))
                 break
 
             assmt = CodingAssignment()
