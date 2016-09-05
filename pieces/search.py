@@ -5,6 +5,7 @@ import six
 from six.moves import intern
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ObjectDoesNotExist
 from django import db
 from django.contrib import messages
 from django import http
@@ -15,7 +16,8 @@ from crispy_forms.layout import Submit
 from pytools.lex import RE as REBase  # noqa
 
 from pieces.models import PieceTag, Piece
-from coding.models import AssignmentTag
+from coding.models import AssignmentTag, Sample, CodingAssignment
+from django.contrib.auth.models import User
 
 
 # {{{ parsing
@@ -248,6 +250,30 @@ def parse_query(expr_str):
 # }}}
 
 
+SEARCH_HELP = """
+The following search syntax is supported:
+<code>"<i>fulltext</i>"</code>,
+<code>word:<i>someword</i></code>,
+<code>near:<i>3</i>,<i>someword</i>,<i>otherword</i></code>
+('someword' and 'otherword' are separated by at most 3 words,
+with 'someword' occurring first),
+<code>id:<i>1234</i></code>,
+<code>study-id:<i>1234</i></code>,
+<code>sample-id:<i>1234</i></code>,
+<code>tag:<i>piece-tag</i></code>,
+<code>atag:<i>assignment-tag</i></code>,
+<code>meta:<i>word</i></code> (<i>word</i> occurs in metadata),
+<code>pubbefore:<i>YYYY-MM-DD</i></code>,
+<code>pubafter:<i>YYYY-MM-DD</i></code>,
+<code>regex:<i>
+<a href="http://www.postgresql.org/docs/current/static/functions-matching.html">\
+regular-expression</a></i></code>.
+Combining these with parentheses <code>()</code>,
+<code>and</code>, <code>or</code>, and <code>not</code>
+is supported. Text queries are not case sensitive.
+"""
+
+
 # {{{ search form
 
 class SearchForm(forms.Form):
@@ -264,28 +290,7 @@ class SearchForm(forms.Form):
             widget = forms.Textarea
 
         self.fields["query"] = forms.CharField(min_length=1, widget=widget,
-                help_text="""
-                The following search syntax is supported:
-                <code>"<i>fulltext</i>"</code>,
-                <code>word:<i>someword</i></code>,
-                <code>near:<i>3</i>,<i>someword</i>,<i>otherword</i></code>
-                ('someword' and 'otherword' are separated by at most 3 words,
-                with 'someword' occurring first),
-                <code>id:<i>1234</i></code>,
-                <code>study-id:<i>1234</i></code>,
-                <code>sample-id:<i>1234</i></code>,
-                <code>tag:<i>piece-tag</i></code>,
-                <code>atag:<i>assignment-tag</i></code>,
-                <code>meta:<i>word</i></code> (<i>word</i> occurs in metadata),
-                <code>pubbefore:<i>YYYY-MM-DD</i></code>,
-                <code>pubafter:<i>YYYY-MM-DD</i></code>,
-                <code>regex:<i>
-<a href="http://www.postgresql.org/docs/current/static/functions-matching.html">\
-regular-expression</a></i></code>.
-                Combining these with parentheses <code>()</code>,
-                <code>and</code>, <code>or</code>, and <code>not</code>
-                is supported. Text queries are not case sensitive.
-                """)
+                help_text=SEARCH_HELP)
         if assign_tag_allowed:
             self.fields["tag"] = forms.ModelChoiceField(
                     queryset=PieceTag.objects,
@@ -426,4 +431,152 @@ def view_large_search_form(request):
 
 # }}}
 
+
+class UniqueIDData:
+    def __init__(self, uid):
+        self.uid = uid
+
+        parts = uid.split("-")
+
+        piece = None
+        assignment = None
+        sample = None
+        coder = None
+
+        for part in parts:
+            if not part:
+                raise ValueError("invalid unique id: %s" % uid)
+
+            kind = part[0]
+
+            try:
+                number = int(part[1:])
+            except ValueError:
+                raise ValueError("invalid unique id: %s" % uid)
+
+            try:
+                if kind == "P":
+                    piece = Piece.objects.get(id=number)
+                elif kind == "A":
+                    assignment = CodingAssignment.objects.get(id=number)
+                elif kind == "S":
+                    sample = Sample.objects.get(id=number)
+                elif kind == "C":
+                    coder = User.objects.get(id=number)
+                else:
+                    raise ValueError("invalid unique id: %s" % uid)
+
+            except ObjectDoesNotExist:
+                raise ValueError("invalid unique id: %s" % uid)
+
+        if piece is not None and assignment is not None:
+            if assignment.piece.id != piece.id:
+                raise ValueError("A and P disagree in UID: %s" % uid)
+
+        if coder is not None and assignment is not None:
+            if assignment.coder.id != coder.id:
+                raise ValueError("A and C disagree in UID: %s" % uid)
+
+        if sample is not None and assignment is not None:
+            if assignment.sample.id != sample.id:
+                raise ValueError("A and S disagree in UID: %s" % uid)
+
+        if piece is None and self.assignment is not None:
+            piece = self.assignment
+
+        self.piece = piece
+        self.assignment = assignment
+        self.sample = sample
+        self.coder = coder
+
+    def expect_piece(self):
+        if self.piece is None:
+            raise ValueError("piece ref expected in: %s" % self.uid)
+
+        return self
+
+
+# {{{ completeness checking
+
+class CompletenessCheckingForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(CompletenessCheckingForm, self).__init__(*args, **kwargs)
+
+        self.helper = FormHelper()
+        self.helper.form_class = "form-horizontal"
+        self.helper.label_class = "col-lg-1"
+        self.helper.field_class = "col-lg-8"
+
+        self.fields["query"] = forms.CharField(min_length=1, widget=forms.Textarea,
+                help_text=SEARCH_HELP)
+
+        self.fields["query"].widget.attrs["autofocus"] = None
+
+        self.fields["validation_uids"] = forms.CharField(
+                label="Unique identifiers for set checking",
+                widget=forms.Textarea)
+
+        self.helper.add_input(
+                Submit("validate", "Check Against Unique Identifiers"))
+
+
+@login_required
+def view_check_completeness(request):
+    pieces = None
+
+    if request.method == "POST":
+        form = CompletenessCheckingForm(
+                request.POST, request.FILES)
+
+        if form.is_valid():
+            try:
+                query = parse_query(
+                        form.cleaned_data["query"].replace("\n", " "))
+                pieces = (Piece.objects
+                        .filter(query)
+                        .order_by("id")
+                        .prefetch_related("tags"))
+            except Exception as e:
+                messages.add_message(request, messages.ERROR,
+                        type(e).__name__+": "+str(e))
+            else:
+                try:
+                    uid_data = [UniqueIDData(s).expect_piece()
+                            for s in
+                            form.cleaned_data["validation_uids"].split()
+                            if s]
+                except Exception as e:
+                    messages.add_message(request, messages.ERROR,
+                            type(e).__name__+": "+str(e))
+
+                else:
+                    search_ids = set(piece.id for piece in pieces)
+                    uid_ids = set(uidd.piece.id for uidd in uid_data)
+
+                    search_m_uid = search_ids - uid_ids
+                    uid_m_search = uid_ids - search_ids
+
+                    if search_m_uid:
+                        messages.add_message(request, messages.ERROR,
+                                "Piece IDs found in search but not by UID: %s"
+                                % ", ".join(str(i) for i in search_m_uid))
+                    if uid_m_search:
+                        messages.add_message(request, messages.ERROR,
+                                "Piece IDs found by UID but not by search: %s"
+                                % ", ".join(str(i) for i in uid_m_search))
+
+                    if not (search_m_uid or uid_m_search):
+                        messages.add_message(request, messages.SUCCESS,
+                                "Search matches UID list.")
+
+    else:
+        form = CompletenessCheckingForm()
+
+    return render(request, 'generic-form.html', {
+        "form_description": "Check Query Result against Unique IDs",
+        "form": form,
+    })
+
+
+# }}}
 # vim: foldmethod=marker

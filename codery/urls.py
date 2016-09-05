@@ -35,6 +35,8 @@ urlpatterns = [
         name="pieces-view_search_form"),
     url('^piece/search/large/$', pieces.search.view_large_search_form,
         name="pieces-view_large_search_form"),
+    url('^piece/check-completeness/$', pieces.search.view_check_completeness,
+        name="pieces-view_check_completeness"),
 
     url('^coding/create-sample/$', coding.views.create_sample,
         name="coding-create_sample"),
