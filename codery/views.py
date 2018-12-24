@@ -23,6 +23,6 @@ class AuthenticationForm(AuthenticationFormBase):
 
 
 def login(request):
-    from django.contrib.auth.views import login
-    return login(request, template_name="login.html",
-            authentication_form=AuthenticationForm)
+    from django.contrib.auth.views import LoginView
+    return LoginView.as_view(template_name="login.html",
+            authentication_form=AuthenticationForm)(request)
