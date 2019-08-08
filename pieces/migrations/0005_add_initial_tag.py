@@ -14,7 +14,9 @@ def add_initial_tag(apps, schema_editor):
     initial_tag.name = "created-before-tagging"
     initial_tag.save()
 
-    for piece in Piece.objects.all():
+    l = Piece.objects.all()
+    for i, piece in enumerate(l):
+        print i, len(l)
         piece.tags = [initial_tag]
         piece.save()
 
