@@ -1,6 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.utils.translation import (
-        ugettext_lazy as _, pgettext_lazy, string_concat)
+        ugettext_lazy as _, pgettext_lazy)
+from django.utils.text import format_lazy
 from django.contrib import messages  # noqa
 from django.db import transaction
 
@@ -286,13 +287,11 @@ def import_csv(request):
                         creator=request.user, create_date=now_datetime)
             except Exception as e:
                 messages.add_message(request, messages.ERROR,
-                        string_concat(
-                            pgettext_lazy("Start of Error message",
-                                "Error"),
-                            ": %(err_type)s %(err_str)s")
-                        % {
-                            "err_type": type(e).__name__,
-                            "err_str": str(e)})
+                        format_lazy(
+                            "{err}: {err_type} {err_str}",
+                            pgettext_lazy("Start of Error message", "Error"),
+                            err_type=type(e).__name__,
+                            err_str=str(e)))
             else:
                 messages.add_message(request, messages.INFO,
                         _("%(total)d pieces found.")

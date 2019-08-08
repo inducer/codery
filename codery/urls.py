@@ -19,11 +19,11 @@ urlpatterns = [
     url(r'^accounts/login/$', codery.views.login,
         name="codery-login"),
     url(r'^accounts/logout/$',
-        django.contrib.auth.views.logout,
+        django.contrib.auth.views.LogoutView.as_view(),
         {'template_name': 'logged_out.html'},
         name="codery-logout"),
 
-    url(r'^admin/', include(admin.site.urls)),
+    url(r'^admin/', admin.site.urls),
 
     url('^piece/(?P<id>[0-9]+)/$', pieces.views.show_piece,
         name="pieces-import_csv"),

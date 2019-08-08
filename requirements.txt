@@ -1,4 +1,4 @@
-Django>=1.8
+Django>=2.2.4
 
 BeautifulSoup4
 django-crispy-forms>=1.5.0
