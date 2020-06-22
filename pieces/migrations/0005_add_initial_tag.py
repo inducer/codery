@@ -16,7 +16,7 @@ def add_initial_tag(apps, schema_editor):
 
     l = Piece.objects.all()
     for i, piece in enumerate(l):
-        print i, len(l)
+        print(i, len(l))
         piece.tags = [initial_tag]
         piece.save()
 

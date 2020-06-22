@@ -1,0 +1,29 @@
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.poetry]
+name = "codery"
+version = "2020.1"
+description = "A content analysis tool"
+readme = "README.md"
+repository = "https://github.com/inducer/codery"
+authors = ["Andreas Kloeckner <inform@tiker.net>"]
+license = "MIT"
+packages = [
+    { include = "coding" },
+    { include = "codery" },
+]
+
+[tool.poetry.dependencies]
+python = "^3.6"
+django = "^3.0.7"
+django-crispy-forms = ">=1.5.1"
+docutils = ">=0.11"
+pytz = "^2020.1"
+pytools = "^2020.2"
+six = "^1.15.0"
+
+[tool.poetry.dev-dependencies]
+flake8 = "^3.8.3"
+pep8-naming = "^0.10.0"
