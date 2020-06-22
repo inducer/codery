@@ -23,7 +23,13 @@ docutils = ">=0.11"
 pytz = "^2020.1"
 pytools = "^2020.2"
 six = "^1.15.0"
+psycopg2 = { version = "^2.8.5", optional = true }
 
 [tool.poetry.dev-dependencies]
 flake8 = "^3.8.3"
 pep8-naming = "^0.10.0"
+
+# enable with "-E postgres"
+[tool.poetry.extras]
+postgres = ["psycopg2"]
+
