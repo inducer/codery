@@ -16,12 +16,12 @@ packages = [
 ]
 
 [tool.poetry.dependencies]
-python = "^3.6"
+python = "^3.8"
 django = "^3.0.7"
 django-crispy-forms = ">=1.5.1"
 docutils = ">=0.11"
 pytz = "^2020.1"
-pytools = "^2020.2"
+pytools = "^2022.1"
 six = "^1.15.0"
 psycopg2 = { version = "^2.8.5", optional = true }
 
