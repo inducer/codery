@@ -17,7 +17,7 @@ packages = [
 
 [tool.poetry.dependencies]
 python = "^3.8"
-django = "^3.2.13"
+django = "^3.2.14"
 django-crispy-forms = ">=1.5.1"
 docutils = ">=0.11"
 pytz = "^2020.1"
