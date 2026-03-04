@@ -50,14 +50,14 @@ tzdata = ["tzdata"]
 
 [[package]]
 name = "django"
-version = "4.2.28"
+version = "4.2.29"
 description = "A high-level Python web framework that encourages rapid development and clean, pragmatic design."
 optional = false
 python-versions = ">=3.8"
 groups = ["main"]
 files = [
-    {file = "django-4.2.28-py3-none-any.whl", hash = "sha256:49a23c1b83ef31525f8d71a57b040f91d34660edb3f086280a8519855655ed3c"},
-    {file = "django-4.2.28.tar.gz", hash = "sha256:a4b9cd881991add394cafa8bb3b11ad1742d1e1470ba99c3ef53dc540316ccfe"},
+    {file = "django-4.2.29-py3-none-any.whl", hash = "sha256:074d7c4d2808050e528388bda442bd491f06def4df4fe863f27066851bba010c"},
+    {file = "django-4.2.29.tar.gz", hash = "sha256:86d91bc8086569c8d08f9c55888b583a921ac1f95ed3bdc7d5659d4709542014"},
 ]
 
 [package.dependencies]
@@ -332,4 +332,4 @@ postgres = ["psycopg2"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.8"
-content-hash = "6c7c38aca20afe7187203407a9766befb6d39121d7739fcaf68647198f066faa"
+content-hash = "a03e4e75511cd1d5f44832a014cbbb8916e3930f00d7dd4178744535634d1ec7"
